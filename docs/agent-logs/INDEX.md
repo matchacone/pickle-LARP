@@ -20,4 +20,6 @@ The skill creates the log file and appends a row to this table.
 
 | Date | Slug | Feature | Status | Key Files |
 |---|---|---|---|---|
-| — | — | *(no entries yet — first agent to finish a feature adds one)* | — | — |
+| 2026-06-28 | `drizzle-schema-setup` | Drizzle ORM schema, Supabase clients, DB migration | complete | `client/lib/db/schema.ts`, `client/lib/db/index.ts`, `client/lib/supabase/server.ts`, `client/lib/supabase/client.ts`, `client/drizzle.config.ts` |
+| 2026-06-28 | `landing-page` | Landing page, design system, Navbar, FilterPills | partial | `client/app/page.tsx`, `client/app/globals.css`, `client/app/layout.tsx`, `client/components/layout/Navbar.tsx`, `client/components/features/FilterPills.tsx` |
+| 2026-06-28 | `auth-pages` | Login/register carousel, forgot password, OAuth callback | partial | `client/app/(auth)/login/page.tsx`, `client/app/(auth)/forgot-password/page.tsx`, `client/app/api/auth/callback/route.ts` |

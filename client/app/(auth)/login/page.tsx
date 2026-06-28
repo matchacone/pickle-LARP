@@ -1,0 +1,388 @@
+'use client'
+
+import { useState } from 'react'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { createBrowserClient } from '@/lib/supabase/client'
+
+// ─── Google icon ──────────────────────────────────────────────────────────────
+function GoogleIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+      <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.875 2.684-6.615z" fill="#4285F4"/>
+      <path d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z" fill="#34A853"/>
+      <path d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z" fill="#FBBC05"/>
+      <path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 6.29C4.672 4.163 6.656 3.58 9 3.58z" fill="#EA4335"/>
+    </svg>
+  )
+}
+
+// ─── Shared branding panel — reused on both screens ──────────────────────────
+function BrandPanel({ headline, bullets, extra }: {
+  headline: React.ReactNode
+  bullets: string[]
+  extra?: React.ReactNode
+}) {
+  return (
+    <div className="hidden lg:flex flex-col justify-between bg-asphalt p-12 relative overflow-hidden h-screen sticky top-0">
+      {/* Court lines bg art */}
+      <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
+        <svg className="absolute bottom-0 right-0 opacity-10" width="420" height="420" viewBox="0 0 420 420" fill="none">
+          <rect x="40" y="40" width="340" height="340" rx="4" stroke="#D1FE00" strokeWidth="2"/>
+          <line x1="210" y1="40" x2="210" y2="380" stroke="#D1FE00" strokeWidth="1.5" strokeDasharray="6 4"/>
+          <line x1="40" y1="150" x2="380" y2="150" stroke="#D1FE00" strokeWidth="1.5"/>
+          <line x1="40" y1="270" x2="380" y2="270" stroke="#D1FE00" strokeWidth="1.5"/>
+          <line x1="40" y1="210" x2="380" y2="210" stroke="white" strokeWidth="2.5"/>
+          <circle cx="210" cy="210" r="24" stroke="#D1FE00" strokeWidth="1.5"/>
+        </svg>
+        <div className="absolute -top-24 -left-24 w-96 h-96 rounded-full opacity-5"
+          style={{ backgroundColor: '#D1FE00', filter: 'blur(80px)' }} />
+      </div>
+
+      {/* Logo */}
+      <Link href="/" className="flex items-center gap-2 relative z-10">
+        <span className="flex items-center justify-center w-9 h-9 rounded-xl bg-green">
+          <svg width="20" height="20" viewBox="0 0 18 18" fill="none">
+            <rect x="2" y="2" width="14" height="14" rx="1" stroke="#121212" strokeWidth="1.5"/>
+            <line x1="9" y1="2" x2="9" y2="16" stroke="#121212" strokeWidth="1.5"/>
+            <line x1="2" y1="9" x2="16" y2="9" stroke="#121212" strokeWidth="1"/>
+          </svg>
+        </span>
+        <span className="text-white font-extrabold text-xl tracking-tight">PickleAll</span>
+      </Link>
+
+      {/* Copy */}
+      <div className="relative z-10">
+        <h2 className="text-4xl font-extrabold text-white leading-tight tracking-tight">{headline}</h2>
+        <ul className="mt-8 flex flex-col gap-3">
+          {bullets.map((f) => (
+            <li key={f} className="flex items-center gap-3 text-sm text-white/70 font-medium">
+              <span className="flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center"
+                style={{ backgroundColor: '#D1FE0022', border: '1px solid #D1FE0044' }}>
+                <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                  <path d="M2 5L4 7L8 3" stroke="#D1FE00" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </span>
+              {f}
+            </li>
+          ))}
+        </ul>
+        {extra}
+      </div>
+    </div>
+  )
+}
+
+// ─── Shared form chrome ───────────────────────────────────────────────────────
+function OAuthSection({ disabled, oauthLoading, onGoogle }: {
+  disabled: boolean
+  oauthLoading: boolean
+  onGoogle: () => void
+}) {
+  return (
+    <>
+      <button type="button" onClick={onGoogle} disabled={disabled || oauthLoading}
+        className="btn btn-outline w-full justify-center gap-3 mt-8 text-sm">
+        {oauthLoading ? <span className="spinner" /> : <GoogleIcon />}
+        Continue with Google
+      </button>
+      <div className="relative flex items-center gap-3 my-6">
+        <div className="flex-1 h-px bg-outline" />
+        <span className="text-xs font-semibold text-on-surface-variant">or continue with email</span>
+        <div className="flex-1 h-px bg-outline" />
+      </div>
+    </>
+  )
+}
+
+function ErrorBanner({ message }: { message: string }) {
+  return (
+    <div className="mb-4 px-4 py-3 rounded-lg bg-error-container text-on-error-container text-sm font-medium">
+      {message}
+    </div>
+  )
+}
+
+// ─── Mobile logo (shown when dark panel is hidden) ────────────────────────────
+function MobileLogo() {
+  return (
+    <div className="lg:hidden flex items-center gap-2 mb-10">
+      <span className="flex items-center justify-center w-8 h-8 rounded-lg bg-asphalt">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+          <rect x="2" y="2" width="14" height="14" rx="1" stroke="#D1FE00" strokeWidth="1.5"/>
+          <line x1="9" y1="2" x2="9" y2="16" stroke="#D1FE00" strokeWidth="1.5"/>
+        </svg>
+      </span>
+      <span className="font-extrabold text-asphalt text-lg">PickleAll</span>
+    </div>
+  )
+}
+
+// ─── Main page ────────────────────────────────────────────────────────────────
+export default function AuthPage() {
+  const router = useRouter()
+  const [view, setView] = useState<'login' | 'register'>('login')
+  const [oauthLoading, setOauthLoading] = useState(false)
+
+  // Login state
+  const [loginEmail,    setLoginEmail]    = useState('')
+  const [loginPassword, setLoginPassword] = useState('')
+  const [loginLoading,  setLoginLoading]  = useState(false)
+  const [loginError,    setLoginError]    = useState<string | null>(null)
+
+  // Register state
+  const [regEmail,    setRegEmail]    = useState('')
+  const [regPassword, setRegPassword] = useState('')
+  const [regConfirm,  setRegConfirm]  = useState('')
+  const [regLoading,  setRegLoading]  = useState(false)
+  const [regError,    setRegError]    = useState<string | null>(null)
+  const [regSuccess,  setRegSuccess]  = useState(false)
+
+  // ── Handlers ───────────────────────────────────────────────────────────────
+  const handleGoogleSignIn = async () => {
+    setOauthLoading(true)
+    const supabase = createBrowserClient()
+    await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo: `${window.location.origin}/api/auth/callback` },
+    })
+  }
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoginLoading(true)
+    setLoginError(null)
+    const { error } = await createBrowserClient().auth.signInWithPassword({
+      email: loginEmail, password: loginPassword,
+    })
+    if (error) { setLoginError(error.message); setLoginLoading(false) }
+    else { router.push('/courts'); router.refresh() }
+  }
+
+  const handleRegister = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setRegError(null)
+    if (regPassword !== regConfirm) { setRegError('Passwords do not match.'); return }
+    if (regPassword.length < 8)    { setRegError('Password must be at least 8 characters.'); return }
+    setRegLoading(true)
+    const { error } = await createBrowserClient().auth.signUp({
+      email: regEmail, password: regPassword,
+      options: { emailRedirectTo: `${window.location.origin}/api/auth/callback` },
+    })
+    if (error) { setRegError(error.message); setRegLoading(false) }
+    else { setRegSuccess(true); setRegLoading(false) }
+  }
+
+  // ── Email confirmation success ─────────────────────────────────────────────
+  if (regSuccess) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-white p-8">
+        <div className="w-full max-w-sm text-center animate-fade-up">
+          <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6"
+            style={{ backgroundColor: '#D1FE0020' }}>
+            <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+              <path d="M6 16L12 22L26 8" stroke="#526600" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </div>
+          <h1 className="text-2xl font-extrabold text-asphalt">Check your inbox!</h1>
+          <p className="text-sm text-on-surface-variant mt-3 leading-relaxed">
+            We sent a confirmation link to <strong className="text-asphalt">{regEmail}</strong>.
+          </p>
+          <button onClick={() => setView('login')} className="btn btn-primary w-full justify-center mt-8">
+            Back to Login
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  // ── Two-screen horizontal carousel ────────────────────────────────────────
+  //
+  //  ┌──────────────────── 200vw wide ────────────────────────┐
+  //  │  [dark panel | login form]   [register form | dark]    │
+  //  │  ←────── screen 1 ──────→   ←────── screen 2 ─────→   │
+  //  └────────────────────────────────────────────────────────┘
+  //
+  //  Login  → translateX(0)
+  //  Register → translateX(-50%)   ← the entire UI shifts left
+
+  return (
+    <div className="w-screen overflow-hidden" style={{ height: '100dvh' }}>
+      <div
+        className="flex h-full"
+        style={{
+          width: '200vw',
+          transform: view === 'login' ? 'translateX(0)' : 'translateX(-50%)',
+          transition: 'transform 0.55s cubic-bezier(0.76, 0, 0.24, 1)',
+        }}
+      >
+
+        {/* ══════════════════════════════════════════
+            SCREEN 1 — Login
+            [dark panel left | form right]
+        ══════════════════════════════════════════ */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 flex-shrink-0" style={{ width: '100vw', height: '100dvh' }}>
+
+          {/* Dark panel */}
+          <BrandPanel
+            headline={<>The fastest way to book your <span style={{ color: '#D1FE00' }}>next game.</span></>}
+            bullets={[
+              'Instant booking confirmation',
+              'Real-time court availability',
+              'Free cancellations within 24 hours',
+            ]}
+          />
+
+          {/* Login form */}
+          <div className="flex flex-col items-center justify-center p-8 lg:p-16 bg-white overflow-y-auto">
+            <MobileLogo />
+            <div className="w-full max-w-sm">
+              <h1 className="text-3xl font-extrabold text-asphalt tracking-tight">Welcome back</h1>
+              <p className="text-sm text-on-surface-variant mt-2">
+                Don&apos;t have an account?{' '}
+                <button
+                  id="login-switch-to-register"
+                  onClick={() => setView('register')}
+                  className="font-bold text-primary hover:underline cursor-pointer"
+                >
+                  Sign up free
+                </button>
+              </p>
+
+              <OAuthSection disabled={loginLoading} oauthLoading={oauthLoading} onGoogle={handleGoogleSignIn} />
+              {loginError && <ErrorBanner message={loginError} />}
+
+              <form id="login-form" onSubmit={handleLogin} className="flex flex-col gap-4">
+                <div className="flex flex-col gap-1.5">
+                  <label htmlFor="login-email" className="text-xs font-bold uppercase tracking-widest text-on-surface-variant">
+                    Email address
+                  </label>
+                  <input id="login-email" type="email" className="input" placeholder="you@example.com"
+                    value={loginEmail} onChange={(e) => setLoginEmail(e.target.value)}
+                    required disabled={loginLoading} autoComplete="email" />
+                </div>
+
+                <div className="flex flex-col gap-1.5">
+                  <div className="flex items-center justify-between">
+                    <label htmlFor="login-password" className="text-xs font-bold uppercase tracking-widest text-on-surface-variant">
+                      Password
+                    </label>
+                    <Link href="/forgot-password" className="text-xs font-semibold text-primary hover:underline">
+                      Forgot password?
+                    </Link>
+                  </div>
+                  <input id="login-password" type="password" className="input" placeholder="••••••••"
+                    value={loginPassword} onChange={(e) => setLoginPassword(e.target.value)}
+                    required disabled={loginLoading} autoComplete="current-password" />
+                </div>
+
+                <button id="login-submit" type="submit"
+                  className="btn btn-primary w-full justify-center gap-2 mt-2 py-3" disabled={loginLoading}>
+                  {loginLoading && <span className="spinner" />}
+                  {loginLoading ? 'Signing in…' : 'Sign In'}
+                </button>
+              </form>
+
+              <p className="text-xs text-on-surface-variant text-center mt-8">
+                By signing in you agree to our{' '}
+                <Link href="#" className="underline">Terms</Link> and{' '}
+                <Link href="#" className="underline">Privacy Policy</Link>.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* ══════════════════════════════════════════
+            SCREEN 2 — Register
+            [form left | dark panel right]  ← mirrored
+        ══════════════════════════════════════════ */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 flex-shrink-0" style={{ width: '100vw', height: '100dvh' }}>
+
+          {/* Register form */}
+          <div className="flex flex-col items-center justify-center p-8 lg:p-16 bg-white overflow-y-auto">
+            <MobileLogo />
+            <div className="w-full max-w-sm">
+              <h1 className="text-3xl font-extrabold text-asphalt tracking-tight">Create your account</h1>
+              <p className="text-sm text-on-surface-variant mt-2">
+                Already have an account?{' '}
+                <button
+                  id="register-switch-to-login"
+                  onClick={() => setView('login')}
+                  className="font-bold text-primary hover:underline cursor-pointer"
+                >
+                  Sign in
+                </button>
+              </p>
+
+              <OAuthSection disabled={regLoading} oauthLoading={oauthLoading} onGoogle={handleGoogleSignIn} />
+              {regError && <ErrorBanner message={regError} />}
+
+              <form id="register-form" onSubmit={handleRegister} className="flex flex-col gap-4">
+                <div className="flex flex-col gap-1.5">
+                  <label htmlFor="register-email" className="text-xs font-bold uppercase tracking-widest text-on-surface-variant">
+                    Email address
+                  </label>
+                  <input id="register-email" type="email" className="input" placeholder="you@example.com"
+                    value={regEmail} onChange={(e) => setRegEmail(e.target.value)}
+                    required disabled={regLoading} autoComplete="email" />
+                </div>
+
+                <div className="flex flex-col gap-1.5">
+                  <label htmlFor="register-password" className="text-xs font-bold uppercase tracking-widest text-on-surface-variant">
+                    Password
+                  </label>
+                  <input id="register-password" type="password" className="input" placeholder="Min. 8 characters"
+                    value={regPassword} onChange={(e) => setRegPassword(e.target.value)}
+                    required disabled={regLoading} autoComplete="new-password" minLength={8} />
+                </div>
+
+                <div className="flex flex-col gap-1.5">
+                  <label htmlFor="register-confirm" className="text-xs font-bold uppercase tracking-widest text-on-surface-variant">
+                    Confirm password
+                  </label>
+                  <input id="register-confirm" type="password" className="input" placeholder="Repeat your password"
+                    value={regConfirm} onChange={(e) => setRegConfirm(e.target.value)}
+                    required disabled={regLoading} autoComplete="new-password" />
+                </div>
+
+                <button id="register-submit" type="submit"
+                  className="btn btn-primary w-full justify-center gap-2 mt-2 py-3" disabled={regLoading}>
+                  {regLoading && <span className="spinner" />}
+                  {regLoading ? 'Creating account…' : 'Create Account'}
+                </button>
+              </form>
+
+              <p className="text-xs text-on-surface-variant text-center mt-6">
+                By signing up you agree to our{' '}
+                <Link href="#" className="underline">Terms of Service</Link> and{' '}
+                <Link href="#" className="underline">Privacy Policy</Link>.
+              </p>
+            </div>
+          </div>
+
+          {/* Dark panel (mirrored to right side on register screen) */}
+          <BrandPanel
+            headline={<>Join thousands of players booking courts <span style={{ color: '#D1FE00' }}>every day.</span></>}
+            bullets={[
+              'Access 500+ courts across the Philippines',
+              'Book in under 60 seconds',
+              'Manage all bookings in one dashboard',
+            ]}
+            extra={
+              <div className="mt-10 grid grid-cols-3 gap-4">
+                {[{ value: '500+', label: 'Courts' }, { value: '12K+', label: 'Players' }, { value: '4.9★', label: 'Rating' }].map((s) => (
+                  <div key={s.label} className="rounded-xl p-4 text-center"
+                    style={{ backgroundColor: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                    <p className="text-2xl font-extrabold" style={{ color: '#D1FE00' }}>{s.value}</p>
+                    <p className="text-xs text-white/50 font-medium mt-0.5">{s.label}</p>
+                  </div>
+                ))}
+              </div>
+            }
+          />
+        </div>
+
+      </div>
+    </div>
+  )
+}
