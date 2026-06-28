@@ -26,9 +26,14 @@ export const court = pgTable('court', {
   id: uuid('id').primaryKey().default(sql`gen_random_uuid()`),
   courtName: text('court_name').notNull().unique(),
   description: text('description'),
+  location: text('location'),
+  pricePerHour: numeric('price_per_hour', { precision: 10, scale: 2 }),
+  courtType: text('court_type'),
   createdAt: tstz('created_at').notNull().defaultNow(),
   updatedAt: tstz('updated_at').notNull().defaultNow(),
-})
+}, (table) => [
+  check('court_type_check', sql`${table.courtType} IS NULL OR ${table.courtType} IN ('indoor', 'outdoor')`),
+])
 
 // ---------------------------------------------------------------------------
 // item

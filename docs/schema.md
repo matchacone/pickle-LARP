@@ -21,6 +21,9 @@ Stores details about the individual courts available for booking. *(Note: The `i
 | **courtID** | SERIAL | **PK**, NOT NULL | Unique identifier for the court. |
 | **courtName** | VARCHAR(100) | NOT NULL, UNIQUE | |
 | **description** | VARCHAR(500) | NULL | |
+| **location** | VARCHAR(255) | NULL | City/barangay text (e.g. 'BGC, Taguig'). Phase 2: GPS. |
+| **price_per_hour** | DECIMAL(10,2) | NULL | Rental rate in PHP per hour. |
+| **court_type** | VARCHAR(20) | NULL, CHECK IN ('indoor','outdoor') | Court surface/environment type. |
 
 ---
 

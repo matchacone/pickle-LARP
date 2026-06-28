@@ -1,6 +1,8 @@
 import Link from 'next/link'
 import Navbar from '@/components/layout/Navbar'
 import FilterPills from '@/components/features/FilterPills'
+import { Search, MapPin, Search as SearchIcon, Star, Calendar, Trophy } from 'lucide-react'
+
 
 // ─── Mock court data (will be replaced with DB fetch once courts are seeded) ──
 const COURTS = [
@@ -83,34 +85,19 @@ const STEPS = [
     num: '01',
     title: 'Find Your Court',
     body: 'Search by location, date, and time. Filter by indoor, outdoor, or pro-level courts.',
-    icon: (
-      <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-        <circle cx="13" cy="13" r="8" stroke="currentColor" strokeWidth="2"/>
-        <path d="M19 19L25 25" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-      </svg>
-    ),
+    icon: <SearchIcon size={28} />,
   },
   {
     num: '02',
     title: 'Book Instantly',
     body: 'Choose your slot and confirm in seconds. No phone calls, no waiting.',
-    icon: (
-      <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-        <rect x="4" y="6" width="20" height="18" rx="2" stroke="currentColor" strokeWidth="2"/>
-        <path d="M19 4V8M9 4V8" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-        <path d="M8 14L12 18L20 11" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-      </svg>
-    ),
+    icon: <Calendar size={28} />,
   },
   {
     num: '03',
     title: 'Play & Review',
     body: 'Show up, play your best game, then leave a review to help other players.',
-    icon: (
-      <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-        <path d="M14 3L17.09 9.26L24 10.27L19 15.14L20.18 22.02L14 18.77L7.82 22.02L9 15.14L4 10.27L10.91 9.26L14 3Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round"/>
-      </svg>
-    ),
+    icon: <Trophy size={28} />,
   },
 ]
 
@@ -178,10 +165,7 @@ function CourtCard({ court }: { court: (typeof COURTS)[number] }) {
           {court.name}
         </h3>
         <p className="text-sm text-on-surface-variant mt-0.5 flex items-center gap-1">
-          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
-            <path d="M6 1C4.07 1 2.5 2.57 2.5 4.5C2.5 7.25 6 11 6 11C6 11 9.5 7.25 9.5 4.5C9.5 2.57 7.93 1 6 1Z" stroke="currentColor" strokeWidth="1.2"/>
-            <circle cx="6" cy="4.5" r="1.25" stroke="currentColor" strokeWidth="1.2"/>
-          </svg>
+          <MapPin size={12} aria-hidden="true" />
           {court.location}
         </p>
 
@@ -326,10 +310,7 @@ export default function HomePage() {
                       id="hero-search-button"
                       className="btn btn-primary flex-shrink-0 gap-2"
                     >
-                      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-                        <circle cx="7" cy="7" r="5" stroke="currentColor" strokeWidth="1.5"/>
-                        <path d="M11 11L14 14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-                      </svg>
+                      <Search size={16} aria-hidden="true" />
                       Find Courts
                     </Link>
                   </div>

@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { createBrowserClient } from '@/lib/supabase/client'
+import { ChevronLeft, Mail } from 'lucide-react'
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('')
@@ -37,9 +38,7 @@ export default function ForgotPasswordPage() {
           href="/login"
           className="flex items-center gap-2 text-sm font-semibold text-on-surface-variant hover:text-asphalt transition-colors"
         >
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-            <path d="M10 12L6 8L10 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
+          <ChevronLeft size={16} aria-hidden="true" />
           Back to login
         </Link>
       </div>
@@ -47,10 +46,7 @@ export default function ForgotPasswordPage() {
       <div className="w-full max-w-sm animate-fade-up">
         {/* Icon */}
         <div className="w-14 h-14 rounded-2xl bg-asphalt flex items-center justify-center mb-6">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-            <path d="M20 4H4C2.9 4 2 4.9 2 6V18C2 19.1 2.9 20 4 20H20C21.1 20 22 19.1 22 18V6C22 4.9 21.1 4 20 4Z" stroke="#D1FE00" strokeWidth="1.5"/>
-            <path d="M2 6L12 13L22 6" stroke="#D1FE00" strokeWidth="1.5" strokeLinecap="round"/>
-          </svg>
+          <Mail size={24} color="#D1FE00" aria-hidden="true" />
         </div>
 
         {!sent ? (

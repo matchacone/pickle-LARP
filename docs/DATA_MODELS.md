@@ -82,6 +82,9 @@ An individual bookable pickleball court. Courts are standalone — there is no `
 | `id` | `uuid` | PK | |
 | `court_name` | `text` | NOT NULL, UNIQUE | Display name e.g. "Court A" |
 | `description` | `text` | NULLABLE | Long-form description |
+| `location` | `text` | NULLABLE | City/barangay text (e.g. `'BGC, Taguig'`). No GPS in Phase 1. |
+| `price_per_hour` | `numeric(10,2)` | NULLABLE | Rental rate in PHP per hour. NULL = price on request. |
+| `court_type` | `text` | NULLABLE, CHECK(`court_type` IN ('indoor','outdoor')) | Surface/environment type. |
 | `created_at` | `timestamptz` | NOT NULL, DEFAULT now() | |
 | `updated_at` | `timestamptz` | NOT NULL, DEFAULT now() | |
 

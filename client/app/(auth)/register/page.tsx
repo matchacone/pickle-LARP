@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { createBrowserClient } from '@/lib/supabase/client'
+import { Check, CircleCheck } from 'lucide-react'
 
 function GoogleIcon() {
   return (
@@ -55,9 +56,7 @@ function BrandPanel() {
           ].map((f) => (
             <li key={f} className="flex items-center gap-3 text-sm text-white/70 font-medium">
               <span className="flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center" style={{ backgroundColor: '#D1FE0022', border: '1px solid #D1FE0044' }}>
-                <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-                  <path d="M2 5L4 7L8 3" stroke="#D1FE00" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
+                <Check size={10} color="#D1FE00" strokeWidth={2.5} aria-hidden="true" />
               </span>
               {f}
             </li>
@@ -136,9 +135,7 @@ export default function RegisterPage() {
       <div className="min-h-screen flex items-center justify-center bg-white p-8">
         <div className="w-full max-w-sm text-center animate-fade-up">
           <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6" style={{ backgroundColor: '#D1FE0020' }}>
-            <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-              <path d="M6 16L12 22L26 8" stroke="#526600" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
+            <CircleCheck size={32} color="#526600" aria-hidden="true" />
           </div>
           <h1 className="text-2xl font-extrabold text-asphalt">Check your inbox!</h1>
           <p className="text-sm text-on-surface-variant mt-3 leading-relaxed">

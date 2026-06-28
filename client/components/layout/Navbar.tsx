@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { Menu, X } from 'lucide-react'
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false)
@@ -70,13 +71,13 @@ export default function Navbar() {
         {/* ── Mobile hamburger ── */}
         <button
           id="mobile-menu-button"
-          className="md:hidden flex flex-col gap-1.5 p-2 rounded-lg hover:bg-mist transition-colors"
+          className="md:hidden flex items-center justify-center p-2 rounded-lg hover:bg-mist transition-colors"
           onClick={() => setMenuOpen(!menuOpen)}
           aria-label="Toggle menu"
         >
-          <span className={`block w-5 h-0.5 bg-asphalt transition-all duration-200 ${menuOpen ? 'rotate-45 translate-y-2' : ''}`} />
-          <span className={`block w-5 h-0.5 bg-asphalt transition-all duration-200 ${menuOpen ? 'opacity-0' : ''}`} />
-          <span className={`block w-5 h-0.5 bg-asphalt transition-all duration-200 ${menuOpen ? '-rotate-45 -translate-y-2' : ''}`} />
+          {menuOpen
+            ? <X size={20} className="text-asphalt" />
+            : <Menu size={20} className="text-asphalt" />}
         </button>
       </nav>
 
