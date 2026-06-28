@@ -42,14 +42,15 @@ context-loader → task-planner → pre-flight → [code] → self-review → co
 
 When given a task, run the skills in this order:
 
-1. **`context-loader`** — load exactly the right docs for this task type.
-2. **`task-planner`** — if multi-file or multi-layer, decompose into a checklist before writing code.
-3. **`pre-flight`** — verify env vars, dependencies, and Drizzle setup.
-4. **Write the code.** Follow `CODING_STANDARDS.md`. Use `schema-sync` if the schema changes. Use `debug-trace` if errors appear.
-5. **`self-review`** — run all 7 gates before declaring done.
-6. **`code-documenter`** — log what was built to `docs/agent-logs/`.
-7. **`git-workflow`** — commit with correct prefix, branch, and PR description.
-8. **State what you have NOT done** — out-of-scope items, deferred decisions.
+1. **`ponytail`** — always initialize the ponytail skill first to ensure the simplest, most minimal, and laziest solution is pursued (YAGNI, standard library first, native platform features, lite/full/ultra intensity).
+2. **`context-loader`** — load exactly the right docs for this task type.
+3. **`task-planner`** — if multi-file or multi-layer, decompose into a checklist before writing code.
+4. **`pre-flight`** — verify env vars, dependencies, and Drizzle setup.
+5. **Write the code.** Follow `CODING_STANDARDS.md`. Use `schema-sync` if the schema changes. Use `debug-trace` if errors appear.
+6. **`self-review`** — run all 7 gates before declaring done.
+7. **`code-documenter`** — log what was built to `docs/agent-logs/`.
+8. **`git-workflow`** — commit with correct prefix, branch, and PR description.
+9. **State what you have NOT done** — out-of-scope items, deferred decisions.
 
 ---
 
