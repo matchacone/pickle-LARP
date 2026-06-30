@@ -1,7 +1,14 @@
 import Link from 'next/link'
 import { MapPin } from 'lucide-react'
 
-// ─── Types ────────────────────────────────────────────────────────────────────
+export type MockReview = {
+  id: string
+  author: string
+  rating: number
+  date: string
+  text: string
+}
+
 export type MockCourt = {
   id: string
   courtName: string
@@ -12,6 +19,8 @@ export type MockCourt = {
   rating: number
   reviewCount: number
   amenities: string[]
+  images: string[]
+  reviews: MockReview[]
   accent: string
   accentBg: string
 }
@@ -156,7 +165,7 @@ export default function CourtCard({ court }: { court: MockCourt }) {
             View Details
           </Link>
           <Link
-            href="/login"
+            href={`/courts/${court.id}`}
             id={`book-court-${court.id}`}
             className="btn btn-cta flex-1 justify-center text-sm"
           >

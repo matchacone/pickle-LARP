@@ -26,6 +26,11 @@ const MOCK_COURTS: MockCourt[] = [
     accent: '#4F46E5',
     accentBg: '#EEF2FF',
     amenities: ['Paddle Rental', 'Locker Room', 'Pro Shop', 'Coaching'],
+    images: ['/images/courts/indoor1.png', '/images/courts/indoor2.png', '/images/courts/outdoor1.png'],
+    reviews: [
+      { id: 'r1', author: 'Mark D.', rating: 5, date: 'June 2026', text: 'Best indoor court in BGC. The lighting is amazing and the surface is perfectly maintained.' },
+      { id: 'r2', author: 'Sarah L.', rating: 4, date: 'May 2026', text: 'Great facility, though finding parking during peak hours can be tough.' }
+    ],
   },
   {
     id: '2',
@@ -39,6 +44,8 @@ const MOCK_COURTS: MockCourt[] = [
     accent: '#059669',
     accentBg: '#ECFDF5',
     amenities: ['Ball Rental', 'Water Station', 'Parking'],
+    images: ['/images/courts/outdoor1.png', '/images/courts/indoor1.png', '/images/courts/indoor2.png'],
+    reviews: [],
   },
   {
     id: '3',
@@ -52,6 +59,8 @@ const MOCK_COURTS: MockCourt[] = [
     accent: '#D97706',
     accentBg: '#FFFBEB',
     amenities: ['Paddle Rental', 'Café', 'Coaching', 'Scoreboard', 'Locker Room'],
+    images: ['/images/courts/indoor2.png', '/images/courts/indoor1.png', '/images/courts/outdoor1.png'],
+    reviews: [],
   },
   {
     id: '4',
@@ -65,6 +74,8 @@ const MOCK_COURTS: MockCourt[] = [
     accent: '#DC2626',
     accentBg: '#FEF2F2',
     amenities: ['Ball Rental', 'Parking'],
+    images: ['/images/courts/outdoor1.png', '/images/courts/indoor2.png', '/images/courts/indoor1.png'],
+    reviews: [],
   },
   {
     id: '5',
@@ -78,6 +89,8 @@ const MOCK_COURTS: MockCourt[] = [
     accent: '#7C3AED',
     accentBg: '#F5F3FF',
     amenities: ['Paddle Rental', 'Locker Room', 'Coaching'],
+    images: ['/images/courts/indoor1.png', '/images/courts/outdoor1.png', '/images/courts/indoor2.png'],
+    reviews: [],
   },
   {
     id: '6',
@@ -91,6 +104,8 @@ const MOCK_COURTS: MockCourt[] = [
     accent: '#0369A1',
     accentBg: '#F0F9FF',
     amenities: ['Scoreboard', 'Water Station', 'Spectator Seating'],
+    images: ['/images/courts/outdoor1.png', '/images/courts/indoor1.png', '/images/courts/indoor2.png'],
+    reviews: [],
   },
   {
     id: '7',
@@ -104,6 +119,8 @@ const MOCK_COURTS: MockCourt[] = [
     accent: '#be185d',
     accentBg: '#fdf2f8',
     amenities: ['Paddle Rental', 'Pro Shop', 'Coaching', 'Scoreboard', 'Café'],
+    images: ['/images/courts/indoor2.png', '/images/courts/outdoor1.png', '/images/courts/indoor1.png'],
+    reviews: [],
   },
   {
     id: '8',
@@ -117,6 +134,8 @@ const MOCK_COURTS: MockCourt[] = [
     accent: '#0891b2',
     accentBg: '#ecfeff',
     amenities: ['Ball Rental', 'Water Station'],
+    images: ['/images/courts/outdoor1.png', '/images/courts/indoor2.png', '/images/courts/indoor1.png'],
+    reviews: [],
   },
   {
     id: '9',
@@ -130,6 +149,8 @@ const MOCK_COURTS: MockCourt[] = [
     accent: '#65a30d',
     accentBg: '#f7fee7',
     amenities: ['Parking', 'Water Station'],
+    images: ['/images/courts/indoor1.png', '/images/courts/indoor2.png', '/images/courts/outdoor1.png'],
+    reviews: [],
   },
 ]
 
