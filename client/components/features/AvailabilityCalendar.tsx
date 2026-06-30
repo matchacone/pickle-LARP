@@ -225,7 +225,10 @@ export default function AvailabilityCalendar({
             </div>
             
             <a 
-              href="/login"
+              href={validDuration && selectedSlot !== null
+                ? `/checkout?courtId=${courtId}&date=${selectedDate.toISOString().split('T')[0]}&startHour=${selectedSlot}&duration=${duration}`
+                : '#'
+              }
               className={`btn ${validDuration ? 'btn-primary' : 'bg-mist text-asphalt/40 pointer-events-none'} py-3 px-6 shadow-md shadow-primary/20 flex items-center gap-2`}
               onClick={(e) => {
                 if (!validDuration) e.preventDefault()
@@ -236,7 +239,7 @@ export default function AvailabilityCalendar({
             </a>
           </div>
           <p className="text-[10px] text-center text-on-surface-variant font-medium mt-3">
-            You will be redirected to login to complete this booking.
+            You&apos;ll review your booking on the next page.
           </p>
         </div>
       </div>
