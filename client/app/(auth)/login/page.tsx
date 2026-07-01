@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { createBrowserClient } from '@/lib/supabase/client'
@@ -123,6 +123,15 @@ export default function AuthPage() {
   const [view, setView] = useState<'login' | 'register'>('login')
   const [oauthLoading, setOauthLoading] = useState(false)
 
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search)
+      if (params.get('mode') === 'register') {
+        setView('register')
+      }
+    }
+  }, [])
+  
   // Login state
   const [loginEmail,    setLoginEmail]    = useState('')
   const [loginPassword, setLoginPassword] = useState('')

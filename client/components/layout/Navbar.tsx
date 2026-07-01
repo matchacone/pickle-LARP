@@ -63,7 +63,7 @@ export default function Navbar() {
           <Link href="/login" className="btn btn-ghost text-sm">
             Log in
           </Link>
-          <Link href="/register" className="btn btn-primary text-sm">
+          <Link href="/login?mode=register" className="btn btn-primary text-sm">
             Join Free
           </Link>
         </div>
@@ -102,7 +102,7 @@ export default function Navbar() {
             <Link href="/login" className="btn btn-outline flex-1 justify-center text-sm">
               Log in
             </Link>
-            <Link href="/register" className="btn btn-primary flex-1 justify-center text-sm">
+            <Link href="/login?mode=register" className="btn btn-primary flex-1 justify-center text-sm">
               Join Free
             </Link>
           </div>

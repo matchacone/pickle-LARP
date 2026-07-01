@@ -519,7 +519,7 @@ export default function HomePage() {
                   real-time calendar management, and instant payouts — all in one platform.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-3 mt-8">
-                  <Link href="/register" id="partner-cta-primary" className="btn btn-cta px-8 py-4 text-base">
+                  <Link href="/login?mode=register" id="partner-cta-primary" className="btn btn-cta px-8 py-4 text-base">
                     Partner With Us →
                   </Link>
                   <Link href="/#how-it-works" id="partner-cta-secondary" className="btn px-8 py-4 text-base" style={{ color: 'white', border: '1.5px solid rgba(255,255,255,0.2)' }}>
