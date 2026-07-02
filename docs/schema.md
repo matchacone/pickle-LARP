@@ -50,19 +50,31 @@ Stores details about the individual courts available for booking. *(Note: The `i
 
 ---
 
+### Table: `booking`
+Stores court reservations.
+
+| Column Name | Data Type | Constraints | Notes |
+| :--- | :--- | :--- | :--- |
+| **bookingID** | SERIAL | **PK**, NOT NULL | Unique identifier for the booking. |
+| **userID** | INTEGER | **FK**, NOT NULL | References `user(userID)`. |
+| **courtID** | INTEGER | **FK**, NOT NULL | References `court(courtID)`. |
+| **booking_date** | DATE | NOT NULL | The date the court is reserved for. |
+| **start_time** | TIME | NOT NULL | |
+| **end_time** | TIME | NOT NULL | |
+| **status** | VARCHAR(20) | NOT NULL | 'pending', 'confirmed', 'cancelled', 'no_show'. |
+
+---
+
 ### Table: `invoice`
-Stores booking details and payment transactions linking a user to a court.
+Stores payment transactions linking back to a booking.
 
 | Column Name | Data Type | Constraints | Notes |
 | :--- | :--- | :--- | :--- |
 | **invoiceID** | SERIAL | **PK**, NOT NULL | Unique identifier for the invoice. |
+| **bookingID** | INTEGER | **FK**, NOT NULL | References `booking(bookingID)`. |
 | **payment_method** | VARCHAR(50) | NOT NULL | e.g., 'Credit Card', 'Cash'. |
 | **payment_total** | DECIMAL(10,2) | NOT NULL | Snapshot of the price paid. |
-| **booking_date** | DATE | NOT NULL | The date the court is reserved for. |
-| **start_time** | TIME | NOT NULL | |
-| **end_time** | TIME | NOT NULL | |
-| **userID** | INTEGER | **FK**, NOT NULL | References `user(userID)`. |
-| **courtID** | INTEGER | **FK**, NOT NULL | References `court(courtID)`. |
+| **status** | VARCHAR(20) | NOT NULL | 'unpaid', 'paid', 'refunded'. |
 
 ---
 

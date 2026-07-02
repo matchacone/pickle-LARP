@@ -63,12 +63,10 @@ export const courtItem = pgTable('court_item', {
 ])
 
 // ---------------------------------------------------------------------------
-// invoice
+// booking
 // Booking record: links a user to a court for a time window.
-// Combines booking_date + start_time + end_time from schema.md into
-// start_at / end_at timestamptz (UTC). Display in Asia/Manila in the UI.
 // ---------------------------------------------------------------------------
-export const invoice = pgTable('invoice', {
+export const booking = pgTable('booking', {
   id: uuid('id').primaryKey().default(sql`gen_random_uuid()`),
   userId: uuid('user_id')
     .notNull()
@@ -76,8 +74,6 @@ export const invoice = pgTable('invoice', {
   courtId: uuid('court_id')
     .notNull()
     .references(() => court.id, { onDelete: 'restrict' }),
-  paymentMethod: text('payment_method').notNull(),
-  paymentTotal: numeric('payment_total', { precision: 10, scale: 2 }).notNull(),
   startAt: tstz('start_at').notNull(),
   endAt: tstz('end_at').notNull(),
   status: text('status').notNull().default('pending'),
@@ -85,8 +81,29 @@ export const invoice = pgTable('invoice', {
   updatedAt: tstz('updated_at').notNull().defaultNow(),
 }, (table) => [
   check(
-    'invoice_status_check',
+    'booking_status_check',
     sql`${table.status} IN ('pending', 'confirmed', 'cancelled', 'no_show')`,
+  ),
+])
+
+// ---------------------------------------------------------------------------
+// invoice
+// Stores payment details for a specific booking.
+// ---------------------------------------------------------------------------
+export const invoice = pgTable('invoice', {
+  id: uuid('id').primaryKey().default(sql`gen_random_uuid()`),
+  bookingId: uuid('booking_id')
+    .notNull()
+    .references(() => booking.id, { onDelete: 'cascade' }),
+  paymentMethod: text('payment_method').notNull(),
+  paymentTotal: numeric('payment_total', { precision: 10, scale: 2 }).notNull(),
+  status: text('status').notNull().default('unpaid'),
+  createdAt: tstz('created_at').notNull().defaultNow(),
+  updatedAt: tstz('updated_at').notNull().defaultNow(),
+}, (table) => [
+  check(
+    'invoice_status_check',
+    sql`${table.status} IN ('unpaid', 'paid', 'refunded')`,
   ),
 ])
 

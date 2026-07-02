@@ -120,28 +120,42 @@ Junction table linking courts to their available items (Many-to-Many). The combi
 
 ---
 
-## Table: `invoice`
+## Table: `booking`
 
-**Derived from:** `schema.md → invoice`
+**Derived from:** `schema.md → booking`
 
-Stores booking reservations and their associated payment information. Combines what might otherwise be split into `reservations` + `payments` tables — kept unified per the team's schema design.
+Stores court reservations. Manages the scheduling aspect.
 
 | Column | Type | Constraints | Notes |
 |---|---|---|---|
 | `id` | `uuid` | PK | |
 | `user_id` | `uuid` | FK → `profiles.id` NOT NULL | The customer who booked |
 | `court_id` | `uuid` | FK → `court.id` NOT NULL | The booked court |
-| `payment_method` | `text` | NOT NULL | e.g., `'Credit Card'`, `'Cash'`, `'GCash'` |
-| `payment_total` | `numeric(10,2)` | NOT NULL | Price snapshot at time of booking (in PHP) |
-| `start_at` | `timestamptz` | NOT NULL | UTC — combines schema.md `booking_date` + `start_time` |
-| `end_at` | `timestamptz` | NOT NULL | UTC — combines schema.md `booking_date` + `end_time` |
+| `start_at` | `timestamptz` | NOT NULL | UTC |
+| `end_at` | `timestamptz` | NOT NULL | UTC |
 | `status` | `text` | NOT NULL, CHECK IN (`'pending'`,`'confirmed'`,`'cancelled'`,`'no_show'`), DEFAULT `'pending'` | Booking lifecycle status |
 | `created_at` | `timestamptz` | NOT NULL, DEFAULT now() | |
 | `updated_at` | `timestamptz` | NOT NULL, DEFAULT now() | |
 
-**Uniqueness constraint:** No two `confirmed` invoices on the same `court_id` may have overlapping `start_at`/`end_at` intervals. Enforce via Postgres exclusion constraint or a check function called from a Route Handler.
+**Uniqueness constraint:** No two `confirmed` bookings on the same `court_id` may have overlapping `start_at`/`end_at` intervals.
 
-> **Timezone note:** `booking_date`, `start_time`, `end_time` from `schema.md` are merged into `start_at`/`end_at` `timestamptz` (UTC). Always display in `Asia/Manila` (UTC+8) in the UI.
+---
+
+## Table: `invoice`
+
+**Derived from:** `schema.md → invoice`
+
+Stores financial transactions linked to a specific booking.
+
+| Column | Type | Constraints | Notes |
+|---|---|---|---|
+| `id` | `uuid` | PK | |
+| `booking_id` | `uuid` | FK → `booking.id` NOT NULL (CASCADE) | The associated booking |
+| `payment_method` | `text` | NOT NULL | e.g., `'Credit Card'`, `'Cash'`, `'GCash'` |
+| `payment_total` | `numeric(10,2)` | NOT NULL | Total amount (PHP) |
+| `status` | `text` | NOT NULL, CHECK IN (`'unpaid'`,`'paid'`,`'refunded'`), DEFAULT `'unpaid'` | Payment status |
+| `created_at` | `timestamptz` | NOT NULL, DEFAULT now() | |
+| `updated_at` | `timestamptz` | NOT NULL, DEFAULT now() | |
 
 ---
 
