@@ -24,7 +24,7 @@ export function OwnerBookingsTable() {
         </div>
       </div>
 
-      <div className="bg-white rounded-2xl border border-outline shadow-sm overflow-hidden flex flex-col">
+      <div className="bg-surface rounded-2xl border border-outline shadow-sm overflow-hidden flex flex-col">
         {/* Table Toolbar */}
         <div className="p-5 border-b border-outline flex flex-col sm:flex-row gap-4 justify-between items-center bg-mist/30">
           <div className="relative w-full sm:w-72">
@@ -32,14 +32,14 @@ export function OwnerBookingsTable() {
             <input 
               type="text" 
               placeholder="Search by player or court..." 
-              className="w-full pl-9 pr-4 py-2 text-sm bg-white border border-outline/50 rounded-lg focus:ring-2 focus:ring-primary outline-none transition-shadow"
+              className="w-full pl-9 pr-4 py-2 text-sm bg-surface border border-outline/50 rounded-lg focus:ring-2 focus:ring-primary outline-none transition-shadow"
             />
           </div>
           <div className="flex gap-2 w-full sm:w-auto">
-            <button className="flex items-center justify-center gap-2 px-3 py-2 text-sm font-semibold border border-outline/50 bg-white rounded-lg hover:bg-mist transition-colors">
+            <button className="flex items-center justify-center gap-2 px-3 py-2 text-sm font-semibold border border-outline/50 bg-surface rounded-lg hover:bg-mist transition-colors">
               <Filter size={16} /> Filter
             </button>
-            <select className="px-3 py-2 text-sm font-semibold border border-outline/50 bg-white rounded-lg focus:ring-2 focus:ring-primary outline-none">
+            <select className="px-3 py-2 text-sm font-semibold border border-outline/50 bg-surface rounded-lg focus:ring-2 focus:ring-primary outline-none">
               <option>All Statuses</option>
               <option>Completed</option>
               <option>Cancelled</option>
@@ -96,7 +96,7 @@ export function OwnerBookingsTable() {
           <span>Showing 1 to 6 of 6 entries</span>
           <div className="flex gap-1">
             <button className="px-3 py-1 border border-outline rounded-md hover:bg-mist disabled:opacity-50" disabled>Prev</button>
-            <button className="px-3 py-1 border border-outline rounded-md bg-white font-bold text-asphalt">1</button>
+            <button className="px-3 py-1 border border-outline rounded-md bg-surface font-bold text-asphalt">1</button>
             <button className="px-3 py-1 border border-outline rounded-md hover:bg-mist disabled:opacity-50" disabled>Next</button>
           </div>
         </div>

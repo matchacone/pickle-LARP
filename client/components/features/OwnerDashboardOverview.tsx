@@ -49,7 +49,7 @@ export function OwnerDashboardOverview() {
       {/* ── Add Court Modal ── */}
       {isAddModalOpen && (
         <div className="fixed inset-0 bg-asphalt/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl p-6 w-full max-w-sm shadow-float border border-outline">
+          <div className="bg-surface rounded-3xl p-6 w-full max-w-sm shadow-float border border-outline">
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-xl font-bold text-asphalt">Add New Court</h3>
               <button 
@@ -110,7 +110,7 @@ export function OwnerDashboardOverview() {
       {/* ── Key Metrics ── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {MOCK_METRICS.map((metric, idx) => (
-          <div key={idx} className="bg-white p-5 rounded-2xl border border-outline shadow-sm flex flex-col gap-3 hover:shadow-md transition-shadow">
+          <div key={idx} className="bg-surface p-5 rounded-2xl border border-outline shadow-sm flex flex-col gap-3 hover:shadow-md transition-shadow">
             <div className="flex items-center gap-3 text-on-surface-variant">
               <div className="w-10 h-10 rounded-xl bg-mist flex items-center justify-center text-primary">
                 {metric.icon}
@@ -128,7 +128,7 @@ export function OwnerDashboardOverview() {
       </div>
 
       {/* ── Visual Schedule Timeline ── */}
-      <div className="bg-white rounded-2xl border border-outline shadow-sm overflow-hidden flex flex-col">
+      <div className="bg-surface rounded-2xl border border-outline shadow-sm overflow-hidden flex flex-col">
         <div className="p-5 border-b border-outline flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <h2 className="text-lg font-bold text-asphalt">Visual Schedule Timeline</h2>
           <div className="flex gap-4 text-sm font-medium">

@@ -4,31 +4,82 @@
    Kinetic Court Design System — globals.css
    ───────────────────────────────────────────── */
 
-@theme inline {
+:root {
   /* Brand colours */
-  --color-green:      #D1FE00;
-  --color-asphalt:    #121212;
-  --color-mist:       #F3F4F5;
-  --color-alert-pink: #E85CBA;
+  --app-green:      #D1FE00;
+  --app-asphalt:    #121212;
+  --app-mist:       #F3F4F5;
+  --app-alert-pink: #E85CBA;
 
   /* Material / surface tokens */
-  --color-surface:            #FFFFFF;
-  --color-surface-low:        #F3F4F5;
-  --color-surface-dim:        #d9dadb;
-  --color-on-surface:         #191c1d;
-  --color-on-surface-variant: #444933;
-  --color-outline:            #E5E7EB;
-  --color-outline-strong:     #D1D5DB;
+  --app-surface:            #FFFFFF;
+  --app-surface-low:        #F3F4F5;
+  --app-surface-dim:        #d9dadb;
+  --app-on-surface:         #191c1d;
+  --app-on-surface-variant: #444933;
+  --app-outline:            #E5E7EB;
+  --app-outline-strong:     #D1D5DB;
 
   /* Primary (olive-green ecosystem) */
-  --color-primary:             #526600;
-  --color-primary-container:   #D1FE00;
-  --color-on-primary:          #FFFFFF;
-  --color-on-primary-container: #3d4c00;
+  --app-primary:             #526600;
+  --app-primary-container:   #D1FE00;
+  --app-on-primary:          #FFFFFF;
+  --app-on-primary-container: #3d4c00;
 
   /* Error */
-  --color-error:           #ba1a1a;
-  --color-error-container: #ffdad6;
+  --app-error:           #ba1a1a;
+  --app-error-container: #ffdad6;
+}
+
+.dark {
+  /* Brand colours (Unchanged) */
+  --app-green:      #D1FE00;
+  --app-asphalt:    #FFFFFF;
+  --app-mist:       #1A1A1A;
+  --app-alert-pink: #E85CBA;
+
+  /* Material / surface tokens */
+  --app-surface:            #121212;
+  --app-surface-low:        #1A1A1A;
+  --app-surface-dim:        #242424;
+  --app-on-surface:         #F3F4F5;
+  --app-on-surface-variant: #A1A1AA;
+  --app-outline:            #333333;
+  --app-outline-strong:     #555555;
+
+  /* Primary (olive-green ecosystem) */
+  --app-primary:             #D1FE00;
+  --app-primary-container:   #526600;
+  --app-on-primary:          #121212;
+  --app-on-primary-container: #D1FE00;
+
+  /* Error */
+  --app-error:           #ffb4ab;
+  --app-error-container: #93000a;
+}
+
+@theme inline {
+  /* Map CSS Variables to Tailwind Theme */
+  --color-green:      var(--app-green);
+  --color-asphalt:    var(--app-asphalt);
+  --color-mist:       var(--app-mist);
+  --color-alert-pink: var(--app-alert-pink);
+
+  --color-surface:            var(--app-surface);
+  --color-surface-low:        var(--app-surface-low);
+  --color-surface-dim:        var(--app-surface-dim);
+  --color-on-surface:         var(--app-on-surface);
+  --color-on-surface-variant: var(--app-on-surface-variant);
+  --color-outline:            var(--app-outline);
+  --color-outline-strong:     var(--app-outline-strong);
+
+  --color-primary:             var(--app-primary);
+  --color-primary-container:   var(--app-primary-container);
+  --color-on-primary:          var(--app-on-primary);
+  --color-on-primary-container: var(--app-on-primary-container);
+
+  --color-error:           var(--app-error);
+  --color-error-container: var(--app-error-container);
 
   /* Typography */
   --font-sans: var(--font-jakarta), 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
@@ -53,11 +104,12 @@
 html { scroll-behavior: smooth; }
 
 body {
-  background-color: #FFFFFF;
-  color: #191c1d;
+  background-color: var(--app-surface);
+  color: var(--app-on-surface);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 /* ─── Utility classes used across the app ───── */
@@ -82,47 +134,47 @@ body {
   font-weight: 700;
   line-height: 1;
   border-radius: 0.5rem;
-  transition: opacity 0.15s ease, transform 0.1s ease;
+  transition: all 0.15s ease;
   cursor: pointer;
   white-space: nowrap;
 }
 .btn:active { transform: scale(0.97); }
 
 .btn-primary {
-  background-color: #121212;
-  color: #FFFFFF;
+  background-color: var(--app-asphalt);
+  color: var(--app-surface);
   padding: 0.75rem 1.5rem;
 }
 .btn-primary:hover { opacity: 0.85; }
 
 .btn-cta {
-  background-color: #D1FE00;
-  color: #121212;
+  background-color: var(--app-green);
+  color: #121212; /* Keep dark text on bright green always */
   padding: 0.75rem 1.5rem;
 }
 .btn-cta:hover { opacity: 0.9; }
 
 .btn-ghost {
   background: transparent;
-  color: #121212;
+  color: var(--app-asphalt);
   padding: 0.75rem 1.25rem;
 }
-.btn-ghost:hover { background-color: rgba(0,0,0,0.04); }
+.btn-ghost:hover { background-color: var(--app-surface-low); }
 
 .btn-outline {
   background: transparent;
-  color: #121212;
-  border: 1.5px solid #E5E7EB;
+  color: var(--app-asphalt);
+  border: 1.5px solid var(--app-outline);
   padding: 0.75rem 1.5rem;
 }
-.btn-outline:hover { border-color: #121212; }
+.btn-outline:hover { border-color: var(--app-asphalt); }
 
 /* Glass card (navbar + modals) */
 .glass {
-  background: rgba(255, 255, 255, 0.8);
+  background: color-mix(in srgb, var(--app-surface) 80%, transparent);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid color-mix(in srgb, var(--app-outline) 20%, transparent);
 }
 
 /* Badge / chip */
@@ -140,33 +192,33 @@ body {
 
 /* Card */
 .card {
-  background: #FFFFFF;
+  background: var(--app-surface);
   border-radius: 1rem;
-  box-shadow: 0px 12px 32px rgba(0, 0, 0, 0.04);
-  border: 1px solid #F3F4F5;
+  box-shadow: var(--shadow-card);
+  border: 1px solid var(--app-outline);
 }
 
-/* Court type badge colours */
-.badge-indoor  { background-color: #E0EDFF; color: #1D4ED8; }
-.badge-outdoor { background-color: #D1FAE5; color: #065F46; }
-.badge-pro     { background-color: #FEF3C7; color: #92400E; }
+/* Court type badge colours - customized for contrast in both modes */
+.badge-indoor  { background-color: color-mix(in srgb, #1D4ED8 15%, var(--app-surface)); color: #3b82f6; }
+.badge-outdoor { background-color: color-mix(in srgb, #065F46 15%, var(--app-surface)); color: #10b981; }
+.badge-pro     { background-color: color-mix(in srgb, #92400E 15%, var(--app-surface)); color: #f59e0b; }
 
 /* ─── Form input ────────────────────────────── */
 .input {
   width: 100%;
   padding: 0.75rem 1rem;
-  border: 1.5px solid #E5E7EB;
+  border: 1.5px solid var(--app-outline);
   border-radius: 0.5rem;
   font-size: 0.875rem;
   font-family: inherit;
-  background: #ffffff;
-  color: #191c1d;
+  background: var(--app-surface);
+  color: var(--app-on-surface);
   outline: none;
-  transition: border-color 0.15s ease, border-width 0.15s ease;
+  transition: border-color 0.15s ease, border-width 0.15s ease, background-color 0.3s ease;
 }
-.input::placeholder { color: #9CA3AF; }
-.input:focus        { border-color: #121212; border-width: 2px; }
-.input:disabled     { opacity: 0.5; cursor: not-allowed; background: #F3F4F5; }
+.input::placeholder { color: var(--app-on-surface-variant); }
+.input:focus        { border-color: var(--app-asphalt); border-width: 2px; }
+.input:disabled     { opacity: 0.5; cursor: not-allowed; background: var(--app-surface-low); }
 
 /* ─── Loading spinner ───────────────────────── */
 @keyframes spin { to { transform: rotate(360deg); } }
@@ -206,7 +258,7 @@ body {
   100% { background-position:  200% 0; }
 }
 .skeleton {
-  background: linear-gradient(90deg, #F3F4F5 25%, #E9EAEB 50%, #F3F4F5 75%);
+  background: linear-gradient(90deg, var(--app-surface-low) 25%, var(--app-outline) 50%, var(--app-surface-low) 75%);
   background-size: 200% 100%;
   animation: shimmer 1.4s ease-in-out infinite;
   border-radius: 0.5rem;

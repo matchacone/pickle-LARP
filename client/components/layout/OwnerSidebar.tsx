@@ -2,10 +2,21 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, Calendar, MapPin, Settings, LogOut } from 'lucide-react'
+import { LayoutDashboard, Calendar, MapPin, Settings, LogOut, Moon, Sun } from 'lucide-react'
+import { useState, useEffect } from 'react'
 
 export function OwnerSidebar() {
   const pathname = usePathname()
+  const [isDarkMode, setIsDarkMode] = useState(false)
+
+  // Optional: Actually toggle a dark class on the HTML body if you add dark mode CSS later
+  useEffect(() => {
+    if (isDarkMode) {
+      document.documentElement.classList.add('dark')
+    } else {
+      document.documentElement.classList.remove('dark')
+    }
+  }, [isDarkMode])
 
   const navLinks = [
     { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
@@ -15,7 +26,7 @@ export function OwnerSidebar() {
   ]
 
   return (
-    <aside className="w-64 bg-white border-r border-outline flex flex-col h-screen sticky top-0 flex-shrink-0">
+    <aside className="w-64 bg-surface border-r border-outline flex flex-col h-screen sticky top-0 flex-shrink-0">
       <div className="h-16 flex items-center px-6 border-b border-outline">
         <Link href="/" className="flex items-center gap-1.5 flex-shrink-0">
           <span className="flex items-center justify-center w-8 h-8 rounded-lg bg-asphalt" aria-hidden="true">
@@ -53,7 +64,20 @@ export function OwnerSidebar() {
         })}
       </nav>
 
-      <div className="p-4 border-t border-outline">
+      <div className="p-4 border-t border-outline flex flex-col gap-2">
+        <button 
+          onClick={() => setIsDarkMode(!isDarkMode)}
+          className="flex items-center justify-between px-3 py-2 w-full rounded-lg text-on-surface-variant hover:bg-mist hover:text-asphalt font-semibold transition-colors"
+        >
+          <div className="flex items-center gap-3">
+            {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
+            {isDarkMode ? 'Light Mode' : 'Dark Mode'}
+          </div>
+          <div className={`w-8 h-4 rounded-full p-0.5 transition-colors ${isDarkMode ? 'bg-primary' : 'bg-outline-strong'}`}>
+            <div className={`w-3 h-3 rounded-full bg-white transition-transform ${isDarkMode ? 'translate-x-4' : 'translate-x-0'}`} />
+          </div>
+        </button>
+
         <button className="flex items-center gap-3 px-3 py-2 w-full rounded-lg text-on-surface-variant hover:bg-red-50 hover:text-red-600 font-semibold transition-colors">
           <LogOut size={20} />
           Sign Out
