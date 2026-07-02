@@ -9,7 +9,7 @@ Stores registered user accounts and their roles.
 | **username** | VARCHAR(50) | NOT NULL, UNIQUE | |
 | **email** | VARCHAR(100) | NOT NULL, UNIQUE | |
 | **password** | VARCHAR(256) | NOT NULL | Store as a hashed value. |
-| **role** | VARCHAR(20) | NOT NULL | Default: 'user' (e.g., 'admin', 'user'). |
+| **role** | VARCHAR(20) | NOT NULL | Default: 'user' (e.g., 'admin', 'user', 'owner'). |
 
 ---
 
@@ -24,6 +24,7 @@ Stores details about the individual courts available for booking. *(Note: The `i
 | **location** | VARCHAR(255) | NULL | City/barangay text (e.g. 'BGC, Taguig'). Phase 2: GPS. |
 | **price_per_hour** | DECIMAL(10,2) | NULL | Rental rate in PHP per hour. |
 | **court_type** | VARCHAR(20) | NULL, CHECK IN ('indoor','outdoor') | Court surface/environment type. |
+| **ownerID** | INTEGER | **FK**, NULL | References `user(userID)`. |
 
 ---
 

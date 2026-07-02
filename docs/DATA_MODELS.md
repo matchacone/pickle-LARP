@@ -63,11 +63,11 @@ Extends Supabase `auth.users`. Created automatically on user sign-up via a Postg
 |---|---|---|---|
 | `id` | `uuid` | PK, FK → `auth.users.id` | Matches Supabase Auth UID |
 | `username` | `text` | NOT NULL, UNIQUE | Display handle |
-| `role` | `text` | NOT NULL, CHECK(`role` IN ('user','admin')), DEFAULT `'user'` | `'user'` = customer; `'admin'` = platform admin |
+| `role` | `text` | NOT NULL, CHECK(`role` IN ('user','admin','owner')), DEFAULT `'user'` | `'user'` = customer; `'admin'` = platform admin; `'owner'` = court owner |
 | `created_at` | `timestamptz` | NOT NULL, DEFAULT now() | |
 | `updated_at` | `timestamptz` | NOT NULL, DEFAULT now() | |
 
-> **Role values:** The schema defines `'user'` and `'admin'`. There is no `'owner'` role in the current schema. Super Admin is assigned manually via Supabase dashboard.
+> **Role values:** The schema defines `'user'`, `'admin'`, and `'owner'`. Super Admin is assigned manually via Supabase dashboard.
 
 ---
 
@@ -85,6 +85,7 @@ An individual bookable pickleball court. Courts are standalone — there is no `
 | `location` | `text` | NULLABLE | City/barangay text (e.g. `'BGC, Taguig'`). No GPS in Phase 1. |
 | `price_per_hour` | `numeric(10,2)` | NULLABLE | Rental rate in PHP per hour. NULL = price on request. |
 | `court_type` | `text` | NULLABLE, CHECK(`court_type` IN ('indoor','outdoor')) | Surface/environment type. |
+| `owner_id` | `uuid` | FK → `profiles.id` NULLABLE | The owner of the court |
 | `created_at` | `timestamptz` | NOT NULL, DEFAULT now() | |
 | `updated_at` | `timestamptz` | NOT NULL, DEFAULT now() | |
 

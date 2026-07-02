@@ -15,7 +15,7 @@ export const profiles = pgTable('profiles', {
   createdAt: tstz('created_at').notNull().defaultNow(),
   updatedAt: tstz('updated_at').notNull().defaultNow(),
 }, (table) => [
-  check('profiles_role_check', sql`${table.role} IN ('user', 'admin')`),
+  check('profiles_role_check', sql`${table.role} IN ('user', 'admin', 'owner')`),
 ])
 
 // ---------------------------------------------------------------------------
@@ -29,6 +29,7 @@ export const court = pgTable('court', {
   location: text('location'),
   pricePerHour: numeric('price_per_hour', { precision: 10, scale: 2 }),
   courtType: text('court_type'),
+  ownerId: uuid('owner_id').references(() => profiles.id, { onDelete: 'set null' }),
   createdAt: tstz('created_at').notNull().defaultNow(),
   updatedAt: tstz('updated_at').notNull().defaultNow(),
 }, (table) => [
