@@ -21,7 +21,7 @@ export function OwnerSidebar() {
   const navLinks = [
     { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
     { name: 'Bookings', href: '/bookings', icon: Calendar },
-    { name: 'My Courts', href: '/my-courts', icon: MapPin },
+    { name: 'My Court', href: '/my-court', icon: MapPin },
     { name: 'Settings', href: '/settings', icon: Settings },
   ]
 

@@ -1,4 +1,4 @@
-import { pgTable, uuid, text, numeric, timestamp, check, primaryKey } from 'drizzle-orm/pg-core'
+import { pgTable, uuid, text, numeric, timestamp, check, primaryKey, boolean, integer, time, date, uniqueIndex } from 'drizzle-orm/pg-core'
 import { sql } from 'drizzle-orm'
 
 // Shorthand helper — all timestamps are stored as UTC with timezone
@@ -29,11 +29,49 @@ export const court = pgTable('court', {
   location: text('location'),
   pricePerHour: numeric('price_per_hour', { precision: 10, scale: 2 }),
   courtType: text('court_type'),
+  status: text('status').notNull().default('active'),
   ownerId: uuid('owner_id').references(() => profiles.id, { onDelete: 'set null' }),
   createdAt: tstz('created_at').notNull().defaultNow(),
   updatedAt: tstz('updated_at').notNull().defaultNow(),
 }, (table) => [
   check('court_type_check', sql`${table.courtType} IS NULL OR ${table.courtType} IN ('indoor', 'outdoor')`),
+  check('court_status_check', sql`${table.status} IN ('active', 'maintenance', 'hidden')`),
+])
+
+// ---------------------------------------------------------------------------
+// court_operating_hours
+// Stores the weekly recurring schedule for a court.
+// ---------------------------------------------------------------------------
+export const courtOperatingHours = pgTable('court_operating_hours', {
+  id: uuid('id').primaryKey().default(sql`gen_random_uuid()`),
+  courtId: uuid('court_id')
+    .notNull()
+    .references(() => court.id, { onDelete: 'cascade' }),
+  dayOfWeek: integer('day_of_week').notNull(),
+  openTime: time('open_time'),
+  closeTime: time('close_time'),
+  isOpen: boolean('is_open').notNull().default(true),
+  createdAt: tstz('created_at').notNull().defaultNow(),
+  updatedAt: tstz('updated_at').notNull().defaultNow(),
+}, (table) => [
+  check('day_of_week_check', sql`${table.dayOfWeek} >= 0 AND ${table.dayOfWeek} <= 6`),
+  uniqueIndex('court_operating_hours_unique').on(table.courtId, table.dayOfWeek),
+])
+
+// ---------------------------------------------------------------------------
+// court_closed_dates
+// Stores specific dates (exceptions) when the court is closed.
+// ---------------------------------------------------------------------------
+export const courtClosedDates = pgTable('court_closed_dates', {
+  id: uuid('id').primaryKey().default(sql`gen_random_uuid()`),
+  courtId: uuid('court_id')
+    .notNull()
+    .references(() => court.id, { onDelete: 'cascade' }),
+  closedDate: date('closed_date').notNull(),
+  reason: text('reason'),
+  createdAt: tstz('created_at').notNull().defaultNow(),
+}, (table) => [
+  uniqueIndex('court_closed_dates_unique').on(table.courtId, table.closedDate),
 ])
 
 // ---------------------------------------------------------------------------

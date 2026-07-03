@@ -85,9 +85,49 @@ An individual bookable pickleball court. Courts are standalone — there is no `
 | `location` | `text` | NULLABLE | City/barangay text (e.g. `'BGC, Taguig'`). No GPS in Phase 1. |
 | `price_per_hour` | `numeric(10,2)` | NULLABLE | Rental rate in PHP per hour. NULL = price on request. |
 | `court_type` | `text` | NULLABLE, CHECK(`court_type` IN ('indoor','outdoor')) | Surface/environment type. |
+| `status` | `text` | NOT NULL, CHECK(`status` IN ('active','maintenance','hidden')), DEFAULT `'active'` | Court visibility/booking state. |
 | `owner_id` | `uuid` | FK → `profiles.id` NULLABLE | The owner of the court |
 | `created_at` | `timestamptz` | NOT NULL, DEFAULT now() | |
 | `updated_at` | `timestamptz` | NOT NULL, DEFAULT now() | |
+
+---
+
+## Table: `court_operating_hours`
+
+**Derived from:** `schema.md → court_operating_hours`
+
+Stores the weekly recurring schedule for a court.
+
+| Column | Type | Constraints | Notes |
+|---|---|---|---|
+| `id` | `uuid` | PK | |
+| `court_id` | `uuid` | FK → `court.id` NOT NULL (CASCADE) | |
+| `day_of_week` | `integer` | NOT NULL, CHECK(`day_of_week` >= 0 AND `day_of_week` <= 6) | 0 = Sunday, 6 = Saturday |
+| `open_time` | `time` | NULLABLE | e.g. `'06:00:00'` |
+| `close_time` | `time` | NULLABLE | e.g. `'22:00:00'` |
+| `is_open` | `boolean` | NOT NULL, DEFAULT `true` | If false, closed all day |
+| `created_at` | `timestamptz` | NOT NULL, DEFAULT now() | |
+| `updated_at` | `timestamptz` | NOT NULL, DEFAULT now() | |
+
+**Recommended constraint:** UNIQUE `(court_id, day_of_week)`.
+
+---
+
+## Table: `court_closed_dates`
+
+**Derived from:** `schema.md → court_closed_dates`
+
+Stores specific dates (exceptions) when the court is closed.
+
+| Column | Type | Constraints | Notes |
+|---|---|---|---|
+| `id` | `uuid` | PK | |
+| `court_id` | `uuid` | FK → `court.id` NOT NULL (CASCADE) | |
+| `closed_date` | `date` | NOT NULL | e.g. `'2026-10-15'` |
+| `reason` | `text` | NULLABLE | e.g. `'Holiday'` |
+| `created_at` | `timestamptz` | NOT NULL, DEFAULT now() | |
+
+**Recommended constraint:** UNIQUE `(court_id, closed_date)`.
 
 ---
 

@@ -24,7 +24,34 @@ Stores details about the individual courts available for booking. *(Note: The `i
 | **location** | VARCHAR(255) | NULL | City/barangay text (e.g. 'BGC, Taguig'). Phase 2: GPS. |
 | **price_per_hour** | DECIMAL(10,2) | NULL | Rental rate in PHP per hour. |
 | **court_type** | VARCHAR(20) | NULL, CHECK IN ('indoor','outdoor') | Court surface/environment type. |
+| **status** | VARCHAR(20) | NOT NULL, DEFAULT 'active' | 'active', 'maintenance', 'hidden'. |
 | **ownerID** | INTEGER | **FK**, NULL | References `user(userID)`. |
+
+---
+
+### Table: `court_operating_hours`
+*(New)* Stores the weekly schedule for a court.
+
+| Column Name | Data Type | Constraints | Notes |
+| :--- | :--- | :--- | :--- |
+| **id** | SERIAL | **PK**, NOT NULL | Unique identifier. |
+| **courtID** | INTEGER | **FK**, NOT NULL | References `court(courtID)`. |
+| **day_of_week** | INTEGER | NOT NULL | 0=Sunday, 1=Monday... 6=Saturday. |
+| **open_time** | TIME | NULL | E.g. 06:00. |
+| **close_time** | TIME | NULL | E.g. 22:00. |
+| **is_open** | BOOLEAN | NOT NULL, DEFAULT TRUE | If false, court is closed on this day. |
+
+---
+
+### Table: `court_closed_dates`
+*(New)* Stores specific dates when the court is closed.
+
+| Column Name | Data Type | Constraints | Notes |
+| :--- | :--- | :--- | :--- |
+| **id** | SERIAL | **PK**, NOT NULL | Unique identifier. |
+| **courtID** | INTEGER | **FK**, NOT NULL | References `court(courtID)`. |
+| **closed_date** | DATE | NOT NULL | The specific date the court is closed. |
+| **reason** | VARCHAR(255) | NULL | E.g. 'Holiday', 'Maintenance'. |
 
 ---
 
