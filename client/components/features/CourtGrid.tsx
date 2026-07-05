@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import CourtCard, { type MockCourt } from './CourtCard'
+import CourtCard, { type CourtCardData } from './CourtCard'
 import { Search, SlidersHorizontal, ChevronDown, SearchX } from 'lucide-react'
 
 
@@ -27,7 +27,7 @@ const SORTS: { id: SortId; label: string }[] = [
 ]
 
 type Props = {
-  courts: MockCourt[]
+  courts: CourtCardData[]
 }
 
 export default function CourtGrid({ courts }: Props) {
@@ -45,8 +45,8 @@ export default function CourtGrid({ courts }: Props) {
       result = result.filter(
         (c) =>
           c.courtName.toLowerCase().includes(q) ||
-          c.location.toLowerCase().includes(q) ||
-          c.description.toLowerCase().includes(q),
+          c.location?.toLowerCase().includes(q) ||
+          c.description?.toLowerCase().includes(q),
       )
     }
 
@@ -54,10 +54,10 @@ export default function CourtGrid({ courts }: Props) {
     if (activeFilter === 'indoor')  result = result.filter((c) => c.courtType === 'indoor')
     if (activeFilter === 'outdoor') result = result.filter((c) => c.courtType === 'outdoor')
     if (activeFilter === 'budget')  result = result.filter((c) => c.pricePerHour < 300)
-    if (activeFilter === 'premium') result = result.filter((c) => c.rating >= 4.8)
+    if (activeFilter === 'premium') result = result.filter((c) => c.avgRating >= 4.8)
 
     // ── Sort ─────────────────────────────────────
-    if (activeSort === 'rating')     result.sort((a, b) => b.rating - a.rating)
+    if (activeSort === 'rating')     result.sort((a, b) => b.avgRating - a.avgRating)
     if (activeSort === 'price-asc')  result.sort((a, b) => a.pricePerHour - b.pricePerHour)
     if (activeSort === 'price-desc') result.sort((a, b) => b.pricePerHour - a.pricePerHour)
 

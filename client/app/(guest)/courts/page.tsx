@@ -1,8 +1,9 @@
 import type { Metadata } from 'next'
 import Navbar from '@/components/layout/Navbar'
 import CourtGrid from '@/components/features/CourtGrid'
-import type { MockCourt } from '@/components/features/CourtCard'
+import type { CourtCardData } from '@/components/features/CourtCard'
 import { Search } from 'lucide-react'
+import { getAllCourts } from '@/lib/db/queries/courtQueries'
 
 // ─── SEO ──────────────────────────────────────────────────────────────────────
 export const metadata: Metadata = {
@@ -11,9 +12,10 @@ export const metadata: Metadata = {
     'Discover and book pickleball courts across the Philippines. Filter by location, indoor/outdoor, price, and more.',
 }
 
-// ─── Mock court data ──────────────────────────────────────────────────────────
-// TODO: Replace with `db.select().from(court).leftJoin(...)` once DB is seeded.
-const MOCK_COURTS: MockCourt[] = [
+// ─── Mock fallback ────────────────────────────────────────────────────────────
+// Used when DATABASE_URL is not configured (local dev without DB).
+// Will be removed once the DB is fully seeded and connected.
+const MOCK_COURTS: CourtCardData[] = [
   {
     id: '1',
     courtName: 'BGC Sports Hub — Court A',
@@ -21,16 +23,11 @@ const MOCK_COURTS: MockCourt[] = [
     location: 'Bonifacio Global City, Taguig',
     pricePerHour: 350,
     courtType: 'indoor',
-    rating: 4.9,
+    avgRating: 4.9,
     reviewCount: 128,
     accent: '#4F46E5',
     accentBg: '#EEF2FF',
     amenities: ['Paddle Rental', 'Locker Room', 'Pro Shop', 'Coaching'],
-    images: ['/images/courts/indoor1.png', '/images/courts/indoor2.png', '/images/courts/outdoor1.png'],
-    reviews: [
-      { id: 'r1', author: 'Mark D.', rating: 5, date: 'June 2026', text: 'Best indoor court in BGC. The lighting is amazing and the surface is perfectly maintained.' },
-      { id: 'r2', author: 'Sarah L.', rating: 4, date: 'May 2026', text: 'Great facility, though finding parking during peak hours can be tough.' }
-    ],
   },
   {
     id: '2',
@@ -39,13 +36,11 @@ const MOCK_COURTS: MockCourt[] = [
     location: 'Ayala Ave, Makati City',
     pricePerHour: 280,
     courtType: 'outdoor',
-    rating: 4.7,
+    avgRating: 4.7,
     reviewCount: 94,
     accent: '#059669',
     accentBg: '#ECFDF5',
     amenities: ['Ball Rental', 'Water Station', 'Parking'],
-    images: ['/images/courts/outdoor1.png', '/images/courts/indoor1.png', '/images/courts/indoor2.png'],
-    reviews: [],
   },
   {
     id: '3',
@@ -54,13 +49,11 @@ const MOCK_COURTS: MockCourt[] = [
     location: 'Eastwood City, Quezon City',
     pricePerHour: 420,
     courtType: 'indoor',
-    rating: 4.9,
+    avgRating: 4.9,
     reviewCount: 211,
     accent: '#D97706',
     accentBg: '#FFFBEB',
     amenities: ['Paddle Rental', 'Café', 'Coaching', 'Scoreboard', 'Locker Room'],
-    images: ['/images/courts/indoor2.png', '/images/courts/indoor1.png', '/images/courts/outdoor1.png'],
-    reviews: [],
   },
   {
     id: '4',
@@ -69,13 +62,11 @@ const MOCK_COURTS: MockCourt[] = [
     location: 'Kapitolyo, Pasig City',
     pricePerHour: 250,
     courtType: 'outdoor',
-    rating: 4.6,
+    avgRating: 4.6,
     reviewCount: 67,
     accent: '#DC2626',
     accentBg: '#FEF2F2',
     amenities: ['Ball Rental', 'Parking'],
-    images: ['/images/courts/outdoor1.png', '/images/courts/indoor2.png', '/images/courts/indoor1.png'],
-    reviews: [],
   },
   {
     id: '5',
@@ -84,13 +75,11 @@ const MOCK_COURTS: MockCourt[] = [
     location: 'Mandaluyong City',
     pricePerHour: 380,
     courtType: 'indoor',
-    rating: 4.8,
+    avgRating: 4.8,
     reviewCount: 156,
     accent: '#7C3AED',
     accentBg: '#F5F3FF',
     amenities: ['Paddle Rental', 'Locker Room', 'Coaching'],
-    images: ['/images/courts/indoor1.png', '/images/courts/outdoor1.png', '/images/courts/indoor2.png'],
-    reviews: [],
   },
   {
     id: '6',
@@ -99,13 +88,11 @@ const MOCK_COURTS: MockCourt[] = [
     location: 'Ortigas Center, Pasig',
     pricePerHour: 300,
     courtType: 'outdoor',
-    rating: 4.7,
+    avgRating: 4.7,
     reviewCount: 89,
     accent: '#0369A1',
     accentBg: '#F0F9FF',
     amenities: ['Scoreboard', 'Water Station', 'Spectator Seating'],
-    images: ['/images/courts/outdoor1.png', '/images/courts/indoor1.png', '/images/courts/indoor2.png'],
-    reviews: [],
   },
   {
     id: '7',
@@ -114,13 +101,11 @@ const MOCK_COURTS: MockCourt[] = [
     location: 'Alabang, Muntinlupa',
     pricePerHour: 450,
     courtType: 'indoor',
-    rating: 5.0,
+    avgRating: 5.0,
     reviewCount: 42,
     accent: '#be185d',
     accentBg: '#fdf2f8',
     amenities: ['Paddle Rental', 'Pro Shop', 'Coaching', 'Scoreboard', 'Café'],
-    images: ['/images/courts/indoor2.png', '/images/courts/outdoor1.png', '/images/courts/indoor1.png'],
-    reviews: [],
   },
   {
     id: '8',
@@ -129,13 +114,11 @@ const MOCK_COURTS: MockCourt[] = [
     location: 'CCP Complex, Pasay',
     pricePerHour: 220,
     courtType: 'outdoor',
-    rating: 4.5,
+    avgRating: 4.5,
     reviewCount: 53,
     accent: '#0891b2',
     accentBg: '#ecfeff',
     amenities: ['Ball Rental', 'Water Station'],
-    images: ['/images/courts/outdoor1.png', '/images/courts/indoor2.png', '/images/courts/indoor1.png'],
-    reviews: [],
   },
   {
     id: '9',
@@ -144,29 +127,57 @@ const MOCK_COURTS: MockCourt[] = [
     location: 'UP Diliman, Quezon City',
     pricePerHour: 180,
     courtType: 'indoor',
-    rating: 4.4,
+    avgRating: 4.4,
     reviewCount: 38,
     accent: '#65a30d',
     accentBg: '#f7fee7',
     amenities: ['Parking', 'Water Station'],
-    images: ['/images/courts/indoor1.png', '/images/courts/indoor2.png', '/images/courts/outdoor1.png'],
-    reviews: [],
   },
 ]
 
-// ─── Stats bar data ───────────────────────────────────────────────────────────
-const STATS = [
-  { value: `${MOCK_COURTS.length}`, label: 'Courts Listed' },
-  {
-    value: `₱${Math.min(...MOCK_COURTS.map((c) => c.pricePerHour))}`,
-    label: 'Starting Rate / hr',
-  },
-  { value: '4.7★', label: 'Average Rating' },
-  { value: '< 60s', label: 'Avg. Booking Time' },
-]
+// ─── Data fetching ────────────────────────────────────────────────────────────
+async function getCourts(): Promise<CourtCardData[]> {
+  // If DATABASE_URL is not set, fall back to mock data
+  if (!process.env.DATABASE_URL) {
+    return MOCK_COURTS
+  }
+
+  try {
+    const courts = await getAllCourts()
+    // If DB is empty (not seeded), fall back to mock data
+    if (courts.length === 0) {
+      return MOCK_COURTS
+    }
+    return courts
+  } catch {
+    // DB connection failed — fall back gracefully
+    console.error('[CourtsPage] Database query failed, using mock data')
+    return MOCK_COURTS
+  }
+}
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
-export default function CourtsPage() {
+export default async function CourtsPage() {
+  const courts = await getCourts()
+
+  // Compute stats from actual data
+  const STATS = [
+    { value: `${courts.length}`, label: 'Courts Listed' },
+    {
+      value: courts.length > 0
+        ? `₱${Math.min(...courts.map((c) => c.pricePerHour))}`
+        : '₱0',
+      label: 'Starting Rate / hr',
+    },
+    {
+      value: courts.length > 0
+        ? `${(courts.reduce((sum, c) => sum + c.avgRating, 0) / courts.length).toFixed(1)}★`
+        : 'N/A',
+      label: 'Average Rating',
+    },
+    { value: '< 60s', label: 'Avg. Booking Time' },
+  ]
+
   return (
     <>
       <Navbar />
@@ -280,13 +291,13 @@ export default function CourtsPage() {
                 Available Courts
               </h2>
               <p className="text-sm text-on-surface-variant mt-1">
-                {MOCK_COURTS.length} courts across Metro Manila
+                {courts.length} courts across Metro Manila
               </p>
             </div>
           </div>
 
           {/* CourtGrid — client component handles all filtering/search state */}
-          <CourtGrid courts={MOCK_COURTS} />
+          <CourtGrid courts={courts} />
         </section>
 
         {/* ═══════════════════════════════════════════

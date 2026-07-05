@@ -2,20 +2,33 @@
 
 import { useState } from 'react'
 import { Star, ChevronLeft, ChevronRight } from 'lucide-react'
-import type { MockReview } from '@/components/features/CourtCard'
+import type { ReviewData } from '@/components/features/CourtCard'
 
 interface Props {
-  reviews: MockReview[]
-  rating: number
+  reviews: ReviewData[]
+  avgRating: number
   reviewCount: number
 }
 
 const INITIAL_REVIEWS_COUNT = 2
 const REVIEWS_PER_PAGE = 5
 
-export default function CourtReviews({ reviews, rating, reviewCount }: Props) {
+/**
+ * Formats a Date into a readable "Month Year" string in Asia/Manila timezone.
+ */
+function formatReviewDate(date: Date): string {
+  return new Intl.DateTimeFormat('en-PH', {
+    timeZone: 'Asia/Manila',
+    month: 'long',
+    year: 'numeric',
+  }).format(date)
+}
+
+export default function CourtReviews({ reviews, avgRating, reviewCount }: Props) {
   const [isExpanded, setIsExpanded] = useState(false)
   const [currentPage, setCurrentPage] = useState(1)
+
+  const ratingDisplay = avgRating > 0 ? avgRating.toFixed(1) : 'New'
 
   if (!reviews || reviews.length === 0) {
     return (
@@ -25,7 +38,7 @@ export default function CourtReviews({ reviews, rating, reviewCount }: Props) {
           <div className="flex items-center gap-2">
             <span className="text-sm font-bold text-asphalt flex items-center gap-1 bg-primary/20 text-primary-fixed-variant px-3 py-1 rounded-full">
               <Star size={14} className="fill-current" />
-              {rating.toFixed(1)}
+              {ratingDisplay}
             </span>
             <span className="text-sm text-on-surface-variant">({reviewCount})</span>
           </div>
@@ -55,7 +68,7 @@ export default function CourtReviews({ reviews, rating, reviewCount }: Props) {
         <div className="flex items-center gap-2">
           <span className="text-sm font-bold text-asphalt flex items-center gap-1 bg-primary/20 text-primary-fixed-variant px-3 py-1 rounded-full">
             <Star size={14} className="fill-current" />
-            {rating.toFixed(1)}
+            {ratingDisplay}
           </span>
           <span className="text-sm text-on-surface-variant">({reviewCount})</span>
         </div>
@@ -67,16 +80,16 @@ export default function CourtReviews({ reviews, rating, reviewCount }: Props) {
             <div className="flex justify-between items-start mb-3">
               <div className="flex flex-col">
                 <span className="font-bold text-asphalt">{review.author}</span>
-                <span className="text-xs text-on-surface-variant mt-0.5">{review.date}</span>
+                <span className="text-xs text-on-surface-variant mt-0.5">{formatReviewDate(review.createdAt)}</span>
               </div>
-              <div className="flex gap-0.5 text-yellow-400">
-                {Array.from({ length: 5 }).map((_, i) => (
-                  <Star key={i} size={14} className={i < review.rating ? "fill-current" : "text-mist fill-current"} />
-                ))}
-              </div>
+              {review.title && (
+                <span className="text-xs font-semibold text-on-surface-variant bg-mist px-2 py-1 rounded-md">
+                  {review.title}
+                </span>
+              )}
             </div>
             <p className="text-sm text-on-surface-variant leading-relaxed">
-              "{review.text}"
+              &ldquo;{review.description}&rdquo;
             </p>
           </div>
         ))}
