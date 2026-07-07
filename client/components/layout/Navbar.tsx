@@ -1,18 +1,46 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useTransition } from 'react'
 import Link from 'next/link'
-import { Menu, X } from 'lucide-react'
+import { Menu, X, LogOut, User as UserIcon, LayoutDashboard } from 'lucide-react'
+import { useAuth } from '@/hooks/useAuth'
+import { logout } from '@/app/actions/auth-actions'
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
+  const [userMenuOpen, setUserMenuOpen] = useState(false)
+  const [isPending, startTransition] = useTransition()
+  const { user, loading: authLoading } = useAuth()
 
   useEffect(() => {
     const handler = () => setScrolled(window.scrollY > 16)
     window.addEventListener('scroll', handler, { passive: true })
     return () => window.removeEventListener('scroll', handler)
   }, [])
+
+  // Close user menu when clicking outside
+  useEffect(() => {
+    if (!userMenuOpen) return
+    const handler = (e: MouseEvent) => {
+      const target = e.target as HTMLElement
+      if (!target.closest('#user-menu-container')) {
+        setUserMenuOpen(false)
+      }
+    }
+    document.addEventListener('click', handler)
+    return () => document.removeEventListener('click', handler)
+  }, [userMenuOpen])
+
+  const handleLogout = () => {
+    startTransition(() => {
+      logout()
+    })
+  }
+
+  // User initial for avatar
+  const userInitial = user?.email?.[0]?.toUpperCase() ?? '?'
+  const userEmail = user?.email ?? ''
 
   return (
     <header
@@ -58,14 +86,85 @@ export default function Navbar() {
           ))}
         </div>
 
-        {/* ── Auth buttons ── */}
+        {/* ── Auth section (desktop) ── */}
         <div className="hidden md:flex items-center gap-2">
-          <Link href="/login" className="btn btn-ghost text-sm">
-            Log in
-          </Link>
-          <Link href="/login?mode=register" className="btn btn-primary text-sm">
-            Join Free
-          </Link>
+          {authLoading ? (
+            // Skeleton while loading auth state to prevent layout shift
+            <div className="w-8 h-8 rounded-full bg-mist animate-pulse" />
+          ) : user ? (
+            // ── Logged in: user menu ──
+            <div id="user-menu-container" className="relative">
+              <button
+                id="user-menu-button"
+                onClick={() => setUserMenuOpen(!userMenuOpen)}
+                className="flex items-center gap-2 p-1 rounded-full hover:bg-mist transition-colors"
+                aria-haspopup="menu"
+                aria-expanded={userMenuOpen}
+              >
+                <span className="w-8 h-8 rounded-full bg-asphalt text-green text-sm font-bold flex items-center justify-center">
+                  {userInitial}
+                </span>
+              </button>
+
+              {userMenuOpen && (
+                <div
+                  className="absolute right-0 top-full mt-2 w-64 bg-white rounded-xl shadow-lift border border-outline z-50 overflow-hidden"
+                  role="menu"
+                >
+                  {/* User info */}
+                  <div className="px-4 py-3 border-b border-outline">
+                    <p className="text-sm font-bold text-asphalt truncate">{userEmail}</p>
+                    <p className="text-xs text-on-surface-variant mt-0.5">Signed in</p>
+                  </div>
+
+                  {/* Menu items */}
+                  <div className="py-1">
+                    <Link
+                      href="/dashboard"
+                      onClick={() => setUserMenuOpen(false)}
+                      className="flex items-center gap-3 px-4 py-2.5 text-sm font-semibold text-on-surface hover:bg-mist transition-colors"
+                      role="menuitem"
+                    >
+                      <LayoutDashboard size={16} className="text-on-surface-variant" />
+                      Dashboard
+                    </Link>
+                    <Link
+                      href="/bookings"
+                      onClick={() => setUserMenuOpen(false)}
+                      className="flex items-center gap-3 px-4 py-2.5 text-sm font-semibold text-on-surface hover:bg-mist transition-colors"
+                      role="menuitem"
+                    >
+                      <UserIcon size={16} className="text-on-surface-variant" />
+                      My Bookings
+                    </Link>
+                  </div>
+
+                  {/* Logout */}
+                  <div className="border-t border-outline py-1">
+                    <button
+                      onClick={handleLogout}
+                      disabled={isPending}
+                      className="flex items-center gap-3 w-full px-4 py-2.5 text-sm font-semibold text-on-surface hover:bg-mist transition-colors disabled:opacity-50"
+                      role="menuitem"
+                    >
+                      <LogOut size={16} className="text-on-surface-variant" />
+                      {isPending ? 'Signing out…' : 'Sign Out'}
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
+            // ── Not logged in: auth buttons ──
+            <>
+              <Link href="/login" className="btn btn-ghost text-sm">
+                Log in
+              </Link>
+              <Link href="/login?mode=register" className="btn btn-primary text-sm">
+                Join Free
+              </Link>
+            </>
+          )}
         </div>
 
         {/* ── Mobile hamburger ── */}
@@ -98,14 +197,42 @@ export default function Navbar() {
               {link.label}
             </Link>
           ))}
-          <div className="flex gap-2 pt-2">
-            <Link href="/login" className="btn btn-outline flex-1 justify-center text-sm">
-              Log in
-            </Link>
-            <Link href="/login?mode=register" className="btn btn-primary flex-1 justify-center text-sm">
-              Join Free
-            </Link>
-          </div>
+
+          {!authLoading && user ? (
+            // ── Mobile: logged in ──
+            <div className="flex flex-col gap-2 pt-2">
+              <div className="flex items-center gap-3 px-2 py-2">
+                <span className="w-8 h-8 rounded-full bg-asphalt text-green text-sm font-bold flex items-center justify-center flex-shrink-0">
+                  {userInitial}
+                </span>
+                <span className="text-sm font-semibold text-asphalt truncate">{userEmail}</span>
+              </div>
+              <Link
+                href="/dashboard"
+                onClick={() => setMenuOpen(false)}
+                className="btn btn-outline flex-1 justify-center text-sm"
+              >
+                Dashboard
+              </Link>
+              <button
+                onClick={() => { handleLogout(); setMenuOpen(false) }}
+                disabled={isPending}
+                className="btn btn-ghost flex-1 justify-center text-sm"
+              >
+                {isPending ? 'Signing out…' : 'Sign Out'}
+              </button>
+            </div>
+          ) : !authLoading ? (
+            // ── Mobile: not logged in ──
+            <div className="flex gap-2 pt-2">
+              <Link href="/login" className="btn btn-outline flex-1 justify-center text-sm">
+                Log in
+              </Link>
+              <Link href="/login?mode=register" className="btn btn-primary flex-1 justify-center text-sm">
+                Join Free
+              </Link>
+            </div>
+          ) : null}
         </div>
       )}
     </header>
