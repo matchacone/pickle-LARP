@@ -24,6 +24,7 @@ export type CourtCardData = {
 /** Review shape for the detail page */
 export type ReviewData = {
   id: string
+  userId?: string
   author: string
   title: string | null
   description: string

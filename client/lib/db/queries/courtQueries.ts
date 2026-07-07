@@ -36,6 +36,7 @@ export type CourtDetail = CourtListItem & {
 /** Individual review shape */
 export type CourtReviewItem = {
   id: string
+  userId: string
   title: string | null
   description: string
   author: string
@@ -134,6 +135,7 @@ export async function getCourtById(courtId: string): Promise<CourtDetail | null>
   const courtReviews = await db
     .select({
       id: reviews.id,
+      userId: reviews.userId,
       title: reviews.title,
       description: reviews.description,
       authorName: profiles.username,
@@ -159,6 +161,7 @@ export async function getCourtById(courtId: string): Promise<CourtDetail | null>
     avgRating: 0,
     reviews: courtReviews.map((r) => ({
       id: r.id,
+      userId: r.userId,
       title: r.title,
       description: r.description,
       author: r.authorName,

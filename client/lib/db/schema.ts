@@ -161,4 +161,6 @@ export const reviews = pgTable('reviews', {
   description: text('description').notNull(),
   createdAt: tstz('created_at').notNull().defaultNow(),
   updatedAt: tstz('updated_at').notNull().defaultNow(),
-})
+}, (table) => [
+  uniqueIndex('reviews_user_court_unique').on(table.userId, table.courtId),
+])

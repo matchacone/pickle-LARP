@@ -8,6 +8,7 @@ import { MapPin, Star, CheckCircle2, Navigation, Info, ShieldCheck } from 'lucid
 import type { CourtCardData, ReviewData } from '@/components/features/CourtCard'
 import { getCourtById } from '@/lib/db/queries/courtQueries'
 import { getCourtColors, getCourtImages } from '@/lib/utils/courtColors'
+import { createServerClient } from '@/lib/supabase/server'
 
 // ─── Mock court data (fallback when DATABASE_URL is not set) ──────────────────
 const MOCK_COURTS: (CourtCardData & { reviews: ReviewData[] })[] = [
@@ -109,6 +110,16 @@ export default async function CourtDetailPage({ params }: { params: Promise<{ id
 
   if (!court) {
     notFound()
+  }
+
+  // Fetch current user (nullable for guests)
+  let currentUserId: string | null = null
+  try {
+    const supabase = await createServerClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    currentUserId = user?.id ?? null
+  } catch {
+    // Guest — no session
   }
 
   // Resolve display properties
@@ -254,7 +265,7 @@ export default async function CourtDetailPage({ params }: { params: Promise<{ id
                 </div>
 
                 {/* Reviews */}
-                <CourtReviews reviews={court.reviews} avgRating={court.avgRating} reviewCount={court.reviewCount} />
+                <CourtReviews reviews={court.reviews} avgRating={court.avgRating} reviewCount={court.reviewCount} courtId={court.id} currentUserId={currentUserId} />
 
               </div>
 

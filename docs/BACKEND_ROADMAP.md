@@ -50,16 +50,17 @@ All frontend pages were initially built with hardcoded mock data. This roadmap t
 
 ## Phase 3 — Court Reviews API (F-14)
 
-**Status:** Not started
+**Status:** ✅ Complete
 
 **Goal:** Add Route Handlers for creating and deleting reviews, completing the first write operation with auth.
 
-**Scope:**
-- `GET /api/courts/[id]/reviews` — public, paginated
-- `POST /api/courts/[id]/reviews` — authenticated users only
-- `DELETE /api/reviews/[id]` — review author or admin
-- One review per user per court (enforced at DB level)
-- Wire `CourtReviews` component to submit reviews via the API
+**What was built:**
+- Added `UNIQUE(user_id, court_id)` constraint on the `reviews` table (migration `0004`)
+- `GET /api/courts/[id]/reviews` — public, returns `{ reviews, total }`
+- `POST /api/courts/[id]/reviews` — authenticated, validates body, enforces one-per-user via unique constraint (409 on duplicate)
+- `DELETE /api/reviews/[id]` — review author or admin (role check via `profiles.role`)
+- Wired `CourtReviews` component with review submission form (auth-gated), inline error/success messaging, optimistic delete, and "already reviewed" indicator
+- Court detail page passes `currentUserId` from server-side session to CourtReviews
 
 **Dependencies:** Phase 2 (Auth required for POST/DELETE)
 
