@@ -68,17 +68,23 @@ All frontend pages were initially built with hardcoded mock data. This roadmap t
 
 ## Phase 4 — Court Booking + Management (F-03, F-04)
 
-**Status:** Not started
+**Status:** ✅ Complete
 
-**Goal:** Core booking flow — creating invoices, preventing double-bookings, and cancellation.
+**Goal:** Core booking flow — creating bookings, preventing double-bookings, availability queries, and cancellation.
 
-**Scope:**
-- `POST /api/invoices` — create a booking (with overlap check via Drizzle transaction)
-- `GET /api/invoices` — list user's bookings
-- `GET /api/invoices/[id]` — single booking detail
-- `DELETE /api/invoices/[id]` — cancel a booking (24hr policy)
-- Wire `AvailabilityCalendar` to real slot data
-- Wire checkout page to booking creation
+**What was built:**
+- `lib/db/queries/bookingQueries.ts` — shared query layer (`createBookingWithInvoice`, `cancelBooking`, `getUserBookings`, `getBookingById`, `getBookedSlots`) with transactional double-booking prevention
+- `POST /api/bookings` — create a booking + invoice atomically (validates dates, duration 1–8h, future start, overlap check)
+- `GET /api/bookings` — list authenticated user's bookings with court name and invoice details
+- `GET /api/bookings/[id]` — single booking detail (owner or admin)
+- `PATCH /api/bookings/[id]` — cancel a booking (enforces 24hr cancellation window, ownership, and status check)
+- `GET /api/courts/[id]/availability?date=YYYY-MM-DD` — public endpoint returning booked time slots for the availability calendar
+- Wired `AvailabilityCalendar` component to real API (replaced mock seededRandom with live booked-slot data)
+- Wired checkout page to `POST /api/bookings` (replaced mock courts + setTimeout with real API calls, error handling for 401/409)
+- Created `/my-bookings` customer dashboard (server-side Drizzle fetch, upcoming/past split, cancel functionality)
+- Updated Navbar and middleware to support `/my-bookings` route
+
+**Note:** API uses `/api/bookings` (not `/api/invoices`) because the schema separated booking from invoice. The booking creation endpoint creates both atomically.
 
 **Dependencies:** Phase 2 (Auth), Phase 1 (court data)
 

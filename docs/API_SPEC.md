@@ -30,8 +30,11 @@
 | Method | Path | Auth | Role | Description |
 |---|---|---|---|---|
 | POST | `/api/auth/callback` | — | — | Supabase OAuth callback handler |
-| POST | `/api/invoices` | ✓ | user | Create a booking invoice |
-| DELETE | `/api/invoices/[id]` | ✓ | user | Cancel a booking |
+| POST | `/api/bookings` | ✓ | user | Create a booking + invoice |
+| GET | `/api/bookings` | ✓ | user | List user's bookings |
+| GET | `/api/bookings/[id]` | ✓ | user | Single booking detail |
+| PATCH | `/api/bookings/[id]` | ✓ | user | Cancel a booking |
+| GET | `/api/courts/[id]/availability` | — | — | Get booked slots for a date |
 | POST | `/api/payments/initiate` | ✓ | user | Initiate payment for an invoice |
 | POST | `/api/payments/webhook` | — | — | Payment provider webhook |
 | POST | `/api/courts` | ✓ | admin | Create a court |

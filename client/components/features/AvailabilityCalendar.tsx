@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useMemo } from 'react'
-import { Calendar as CalendarIcon, Clock, ArrowRight } from 'lucide-react'
+import { useState, useMemo, useEffect, useCallback } from 'react'
+import { Calendar as CalendarIcon, Clock, ArrowRight, Loader2 } from 'lucide-react'
 
 // Basic 14-hour slot array (8 AM to 9 PM)
 const TIME_SLOTS = Array.from({ length: 14 }).map((_, i) => {
@@ -15,11 +15,8 @@ const TIME_SLOTS = Array.from({ length: 14 }).map((_, i) => {
   }
 })
 
-// Quick deterministic PRNG for mock slot availability based on court + date + time
-function seededRandom(seed: number) {
-  const x = Math.sin(seed++) * 10000
-  return x - Math.floor(x)
-}
+/** Shape of a booked slot from the availability API */
+type BookedSlot = { start_hour: number; end_hour: number }
 
 interface Props {
   courtId: string
@@ -40,6 +37,8 @@ export default function AvailabilityCalendar({
   })
   const [selectedSlot, setSelectedSlot] = useState<number | null>(null)
   const [duration, setDuration] = useState<number>(1)
+  const [bookedSlots, setBookedSlots] = useState<BookedSlot[]>([])
+  const [isLoading, setIsLoading] = useState(true)
 
   // Generate next 7 days for the date picker
   const upcomingDays = useMemo(() => {
@@ -60,10 +59,39 @@ export default function AvailabilityCalendar({
     return days
   }, [])
 
-  // Check if a specific hour on the selected date is available (mock logic)
+  // Fetch availability from the API when date or courtId changes
+  const fetchAvailability = useCallback(async () => {
+    setIsLoading(true)
+    try {
+      const dateStr = selectedDate.toLocaleDateString('en-CA') // YYYY-MM-DD format
+      const res = await fetch(`/api/courts/${courtId}/availability?date=${dateStr}`)
+      if (res.ok) {
+        const data = await res.json()
+        setBookedSlots(data.booked_slots ?? [])
+      } else {
+        // On error, treat all slots as available (graceful degradation)
+        setBookedSlots([])
+      }
+    } catch {
+      setBookedSlots([])
+    } finally {
+      setIsLoading(false)
+    }
+  }, [courtId, selectedDate])
+
+  useEffect(() => {
+    fetchAvailability()
+  }, [fetchAvailability])
+
+  // Check if a specific hour on the selected date is available
   const isSlotAvailable = (hour: number) => {
-    const seed = parseInt(courtId) * 100 + selectedDate.getDate() * 10 + hour
-    return seededRandom(seed) > 0.3 // 70% chance to be available
+    // Check against real booked slots
+    for (const slot of bookedSlots) {
+      if (hour >= slot.start_hour && hour < slot.end_hour) {
+        return false
+      }
+    }
+    return true
   }
 
   // Handle slot click
@@ -143,41 +171,49 @@ export default function AvailabilityCalendar({
           </span>
         </div>
 
-        {/* Time slot grid */}
-        <div className="grid grid-cols-3 gap-2">
-          {TIME_SLOTS.map((slot) => {
-            const available = isSlotAvailable(slot.hour)
-            const isSelected = selectedSlot === slot.hour
-            
-            // Highlight if part of a multi-hour duration
-            const isPartOfDuration = 
-              selectedSlot !== null && 
-              slot.hour >= selectedSlot && 
-              slot.hour < selectedSlot + duration
+        {/* Loading state */}
+        {isLoading ? (
+          <div className="flex items-center justify-center py-12 text-on-surface-variant">
+            <Loader2 size={20} className="animate-spin mr-2" />
+            <span className="text-sm font-semibold">Loading availability…</span>
+          </div>
+        ) : (
+          /* Time slot grid */
+          <div className="grid grid-cols-3 gap-2">
+            {TIME_SLOTS.map((slot) => {
+              const available = isSlotAvailable(slot.hour)
+              const isSelected = selectedSlot === slot.hour
+              
+              // Highlight if part of a multi-hour duration
+              const isPartOfDuration = 
+                selectedSlot !== null && 
+                slot.hour >= selectedSlot && 
+                slot.hour < selectedSlot + duration
 
-            return (
-              <button
-                key={slot.id}
-                disabled={!available}
-                onClick={() => handleSlotClick(slot.hour)}
-                className={`
-                  py-3 rounded-lg text-sm font-bold transition-all border
-                  ${
-                    !available
-                      ? 'bg-mist/50 border-mist text-asphalt/20 cursor-not-allowed line-through decoration-asphalt/20'
-                      : isSelected
-                      ? 'bg-primary border-primary text-asphalt shadow-sm ring-2 ring-primary/30 ring-offset-1'
-                      : isPartOfDuration
-                      ? 'bg-primary/20 border-primary/30 text-asphalt'
-                      : 'bg-white border-outline-variant text-asphalt hover:border-asphalt/40 hover:bg-mist'
-                  }
-                `}
-              >
-                {slot.label}
-              </button>
-            )
-          })}
-        </div>
+              return (
+                <button
+                  key={slot.id}
+                  disabled={!available}
+                  onClick={() => handleSlotClick(slot.hour)}
+                  className={`
+                    py-3 rounded-lg text-sm font-bold transition-all border
+                    ${
+                      !available
+                        ? 'bg-mist/50 border-mist text-asphalt/20 cursor-not-allowed line-through decoration-asphalt/20'
+                        : isSelected
+                        ? 'bg-primary border-primary text-asphalt shadow-sm ring-2 ring-primary/30 ring-offset-1'
+                        : isPartOfDuration
+                        ? 'bg-primary/20 border-primary/30 text-asphalt'
+                        : 'bg-white border-outline-variant text-asphalt hover:border-asphalt/40 hover:bg-mist'
+                    }
+                  `}
+                >
+                  {slot.label}
+                </button>
+              )
+            })}
+          </div>
+        )}
       </div>
 
       {/* Duration Stepper (only show if a slot is selected) */}
@@ -226,7 +262,7 @@ export default function AvailabilityCalendar({
             
             <a 
               href={validDuration && selectedSlot !== null
-                ? `/checkout?courtId=${courtId}&date=${selectedDate.toISOString().split('T')[0]}&startHour=${selectedSlot}&duration=${duration}`
+                ? `/checkout?courtId=${courtId}&date=${selectedDate.toLocaleDateString('en-CA')}&startHour=${selectedSlot}&duration=${duration}&price=${pricePerHour}`
                 : '#'
               }
               className={`btn ${validDuration ? 'btn-primary' : 'bg-mist text-asphalt/40 pointer-events-none'} py-3 px-6 shadow-md shadow-primary/20 flex items-center gap-2`}

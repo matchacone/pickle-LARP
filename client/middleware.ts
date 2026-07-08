@@ -10,7 +10,7 @@ import { NextResponse, type NextRequest } from 'next/server'
  */
 
 // Routes that require authentication
-const PROTECTED_ROUTES = ['/dashboard', '/bookings', '/my-court']
+const PROTECTED_ROUTES = ['/dashboard', '/bookings', '/my-court', '/my-bookings']
 // Routes that require admin role
 const ADMIN_ROUTES = ['/admin']
 // Routes that authenticated users should be redirected away from

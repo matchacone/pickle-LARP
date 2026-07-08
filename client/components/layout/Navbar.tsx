@@ -129,7 +129,7 @@ export default function Navbar() {
                       Dashboard
                     </Link>
                     <Link
-                      href="/bookings"
+                      href="/my-bookings"
                       onClick={() => setUserMenuOpen(false)}
                       className="flex items-center gap-3 px-4 py-2.5 text-sm font-semibold text-on-surface hover:bg-mist transition-colors"
                       role="menuitem"
