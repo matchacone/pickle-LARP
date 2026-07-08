@@ -232,7 +232,7 @@ function CheckoutContent() {
     }
   }
 
-  // Handle confirm — real API call
+  // Handle confirm — create booking then initiate payment
   const handleConfirm = async () => {
     if (!isValid || !courtId) return
     setIsSubmitting(true)
@@ -246,7 +246,8 @@ function CheckoutContent() {
     }
 
     try {
-      const res = await fetch('/api/bookings', {
+      // Step 1: Create booking + invoice
+      const bookingRes = await fetch('/api/bookings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -257,29 +258,46 @@ function CheckoutContent() {
         }),
       })
 
-      const data = await res.json()
+      const bookingData = await bookingRes.json()
 
-      if (!res.ok) {
-        if (res.status === 401) {
-          // Redirect to login
+      if (!bookingRes.ok) {
+        if (bookingRes.status === 401) {
           router.push(`/login?next=${encodeURIComponent(window.location.pathname + window.location.search)}`)
           return
         }
-        setError(data.error || 'Failed to create booking')
+        setError(bookingData.error || 'Failed to create booking')
         setIsSubmitting(false)
         return
       }
 
-      // Success
-      setBookingResult({
-        bookingId: data.booking.id,
-        invoiceId: data.invoice.id,
-        paymentTotal: data.invoice.paymentTotal,
+      const invoiceId = bookingData.invoice.id
+
+      // Step 2: Initiate payment
+      const paymentRes = await fetch('/api/payments/initiate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ invoice_id: invoiceId }),
       })
-      setIsConfirmed(true)
+
+      const paymentData = await paymentRes.json()
+
+      if (!paymentRes.ok) {
+        // Booking was created but payment initiation failed.
+        // Show the error but store the result so user can retry.
+        setBookingResult({
+          bookingId: bookingData.booking.id,
+          invoiceId,
+          paymentTotal: bookingData.invoice.paymentTotal,
+        })
+        setError(paymentData.error || 'Failed to initiate payment. Your booking is saved — you can pay from My Bookings.')
+        setIsSubmitting(false)
+        return
+      }
+
+      // Step 3: Redirect to payment provider checkout
+      router.push(paymentData.checkout_url)
     } catch {
       setError('Network error. Please try again.')
-    } finally {
       setIsSubmitting(false)
     }
   }
@@ -351,10 +369,10 @@ function CheckoutContent() {
             </div>
 
             <h1 className="text-3xl md:text-4xl font-extrabold text-asphalt tracking-tight">
-              Booking Confirmed!
+              Booking Created!
             </h1>
             <p className="text-base text-on-surface-variant mt-3 leading-relaxed">
-              Your court has been reserved. You&apos;re all set to play!
+              Your court has been reserved. Complete payment to confirm your booking.
             </p>
 
             {/* Booking details card */}
@@ -388,7 +406,7 @@ function CheckoutContent() {
                   <div>
                     <p className="text-sm font-bold text-asphalt">{paymentMethod}</p>
                     <p className="text-xs text-on-surface-variant">
-                      Status: <span className="text-primary font-bold">Pending</span>
+                      Status: <span className="text-amber-600 font-bold">Awaiting Payment</span>
                     </p>
                   </div>
                 </div>
@@ -404,13 +422,13 @@ function CheckoutContent() {
             <div className="mt-8 flex flex-col sm:flex-row gap-3">
               <Link
                 href="/my-bookings"
-                className="btn btn-outline flex-1 justify-center text-sm py-3"
+                className="btn btn-primary flex-1 justify-center text-sm py-3"
               >
-                My Bookings
+                Go to My Bookings
               </Link>
               <Link
                 href="/courts"
-                className="btn btn-primary flex-1 justify-center text-sm py-3"
+                className="btn btn-outline flex-1 justify-center text-sm py-3"
               >
                 Browse Courts
               </Link>
@@ -636,7 +654,7 @@ function CheckoutContent() {
                     </>
                   ) : (
                     <>
-                      Confirm Booking
+                      Confirm & Pay
                       <ArrowRight size={18} />
                     </>
                   )}

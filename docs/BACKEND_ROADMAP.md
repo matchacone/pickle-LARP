@@ -92,16 +92,18 @@ All frontend pages were initially built with hardcoded mock data. This roadmap t
 
 ## Phase 5 — Payment (F-05)
 
-**Status:** Not started
+**Status:** ✅ Complete
 
 **Goal:** Implement the `PaymentService` interface with a mock provider, enabling the payment flow without a real payment gateway.
 
-**Scope:**
-- `lib/payment/index.ts` — `PaymentService` interface + factory
-- `lib/payment/mock.ts` — mock implementation (auto-confirms after delay)
-- `POST /api/payments/webhook` — webhook handler for payment status updates
-- Update invoice status transitions: `pending` → `confirmed` or `cancelled`
-- Wire checkout page to payment flow
+**Delivered:**
+- `lib/payment/index.ts` — `PaymentService` interface + `getPaymentService()` factory
+- `lib/payment/mock.ts` — mock implementation (returns `/mock-payment` checkout URL)
+- `lib/db/queries/paymentQueries.ts` — invoice lookup, `confirmPayment()`, `failPayment()` transactions
+- `POST /api/payments/initiate` — authenticated, validates invoice ownership, calls PaymentService
+- `POST /api/payments/webhook` — public, verifies webhook, transitions invoice → `paid` + booking → `confirmed`
+- `app/(checkout)/mock-payment/page.tsx` — simulated checkout page with Pay / Cancel actions
+- Checkout page wired: creates booking → initiates payment → redirects to mock checkout
 
 **Dependencies:** Phase 4 (Invoices exist to pay for)
 
