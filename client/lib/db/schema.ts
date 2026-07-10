@@ -12,6 +12,7 @@ export const profiles = pgTable('profiles', {
   id: uuid('id').primaryKey(), // FK → auth.users.id (managed by Supabase trigger)
   username: text('username').notNull().unique(),
   role: text('role').notNull().default('user'),
+  suspendedAt: tstz('suspended_at'), // null = active, non-null = suspended
   createdAt: tstz('created_at').notNull().defaultNow(),
   updatedAt: tstz('updated_at').notNull().defaultNow(),
 }, (table) => [

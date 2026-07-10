@@ -1,26 +1,63 @@
-'use client'
+import { Users, CalendarCheck, DollarSign, TrendingUp, AlertTriangle, AlertCircle, Database, CheckCircle } from 'lucide-react'
+import { getAdminDashboardStats } from '@/lib/db/queries/adminQueries'
 
-import { Activity, Users, Zap, Clock, AlertTriangle, AlertCircle, Database, CheckCircle } from 'lucide-react'
+export default async function AdminDashboardPage() {
+  const stats = await getAdminDashboardStats()
 
-export default function AdminDashboardPage() {
+  // Format currency
+  const formatPHP = (amount: number) =>
+    new Intl.NumberFormat('en-PH', {
+      style: 'currency',
+      currency: 'PHP',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(amount)
+
+  // Format date for recent bookings
+  const formatDate = (date: Date) =>
+    new Intl.DateTimeFormat('en-PH', {
+      timeZone: 'Asia/Manila',
+      dateStyle: 'medium',
+      timeStyle: 'short',
+    }).format(new Date(date))
+
+  // Build status breakdown map for quick access
+  const statusMap = new Map(stats.bookingsByStatus.map((s) => [s.status, s.count]))
+
   const metrics = [
-    { title: 'Total Active Users', value: '12,450', change: '+12%', icon: Users, color: 'text-blue-500' },
-    { title: 'Daily New Signups', value: '342', change: '+5%', icon: Zap, color: 'text-green-500' },
-    { title: 'Server Uptime', value: '99.99%', change: 'Stable', icon: Activity, color: 'text-primary' },
-    { title: 'Avg API Response', value: '124ms', change: '-12ms', icon: Clock, color: 'text-orange-500' },
-  ]
-
-  const alerts = [
-    { id: 1, type: 'error', message: 'Failed to process background job: send_booking_reminders', time: '10 mins ago', icon: AlertCircle },
-    { id: 2, type: 'warning', message: 'Database connection pool reached 80% capacity', time: '1 hour ago', icon: Database },
-    { id: 3, type: 'error', message: 'Stripe webhook verification failed for event evt_123', time: '2 hours ago', icon: AlertTriangle },
+    {
+      title: 'Total Users',
+      value: stats.totalUsers.toLocaleString(),
+      icon: Users,
+      color: 'text-blue-500',
+    },
+    {
+      title: 'Total Bookings',
+      value: stats.totalBookings.toLocaleString(),
+      icon: CalendarCheck,
+      color: 'text-green-500',
+    },
+    {
+      title: 'Revenue (Paid)',
+      value: formatPHP(stats.totalRevenue),
+      icon: DollarSign,
+      color: 'text-primary',
+    },
+    {
+      title: 'Confirmed Bookings',
+      value: (statusMap.get('confirmed') ?? 0).toLocaleString(),
+      icon: TrendingUp,
+      color: 'text-orange-500',
+    },
   ]
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
       <div>
-        <h1 className="text-2xl font-extrabold tracking-tight">Website Overview</h1>
-        <p className="text-on-surface-variant text-sm mt-1">Real-time metrics and system telemetry.</p>
+        <h1 className="text-2xl font-extrabold tracking-tight">Dashboard Overview</h1>
+        <p className="text-on-surface-variant text-sm mt-1">
+          Platform metrics from live data.
+        </p>
       </div>
 
       {/* Metrics Grid */}
@@ -38,127 +75,102 @@ export default function AdminDashboardPage() {
                   <Icon size={24} />
                 </div>
               </div>
-              <div className="text-xs font-bold text-on-surface-variant">
-                <span className={m.change.startsWith('+') ? 'text-green-500' : m.change.startsWith('-') ? 'text-blue-500' : 'text-on-surface-variant'}>
-                  {m.change}
-                </span>
-                {' '}from last month
-              </div>
             </div>
           )
         })}
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-        {/* Charts Area */}
+        {/* Booking Status Breakdown */}
         <div className="xl:col-span-2 flex flex-col gap-6">
-          <div className="card p-6 flex flex-col min-h-[320px]">
-            <h3 className="text-lg font-bold mb-6">Traffic & API Requests (30 Days)</h3>
-            
-            {/* CSS Mocked Line Chart */}
-            <div className="flex-1 flex items-end justify-between gap-1 mt-auto h-48 border-b border-outline pb-2 relative">
-              {/* Y-axis lines */}
-              <div className="absolute inset-0 flex flex-col justify-between pointer-events-none">
-                {[1,2,3,4].map(i => <div key={i} className="w-full h-px bg-outline/50 border-dashed" />)}
-              </div>
-              
-              {/* Mock Bars to simulate line points */}
-              {Array.from({ length: 30 }).map((_, i) => {
-                const height = 20 + Math.random() * 80; // random height between 20-100%
+          <div className="card p-6">
+            <h3 className="text-lg font-bold mb-6">Bookings by Status</h3>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              {(['pending', 'confirmed', 'cancelled', 'no_show'] as const).map((status) => {
+                const count = statusMap.get(status) ?? 0
+                const colorMap: Record<string, string> = {
+                  pending: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400',
+                  confirmed: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
+                  cancelled: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
+                  no_show: 'bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400',
+                }
                 return (
-                  <div key={i} className="w-full relative group h-full flex items-end">
-                    <div 
-                      className="w-full bg-primary/40 hover:bg-primary transition-all rounded-t-sm"
-                      style={{ height: `${height}%` }}
-                    ></div>
-                    <div className="opacity-0 group-hover:opacity-100 absolute -top-8 left-1/2 -translate-x-1/2 bg-asphalt text-surface text-[10px] py-1 px-2 rounded font-bold pointer-events-none transition-opacity z-10">
-                      {Math.floor(height * 100)}
-                    </div>
+                  <div key={status} className="bg-surface-low rounded-lg p-4 text-center">
+                    <p className="text-2xl font-black">{count}</p>
+                    <span className={`badge mt-2 inline-block ${colorMap[status]}`}>
+                      {status.replace('_', ' ')}
+                    </span>
                   </div>
                 )
               })}
             </div>
-            <div className="flex justify-between text-xs text-on-surface-variant mt-2 font-semibold">
-              <span>Day 1</span>
-              <span>Day 15</span>
-              <span>Day 30</span>
-            </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            <div className="card p-6 flex flex-col items-center justify-center min-h-[250px]">
-              <h3 className="text-lg font-bold mb-6 self-start w-full">Device Usage</h3>
-              
-              {/* CSS Mocked Pie Chart using conic-gradient */}
-              <div className="w-40 h-40 rounded-full relative" 
-                   style={{ background: 'conic-gradient(var(--app-primary) 0% 65%, var(--app-outline) 65% 100%)' }}>
-                <div className="absolute inset-4 bg-surface rounded-full flex items-center justify-center">
-                  <span className="font-bold text-lg">65%</span>
-                </div>
-              </div>
-              
-              <div className="flex gap-4 mt-6 text-sm font-semibold text-on-surface-variant w-full justify-center">
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full bg-primary"></div>
-                  Mobile
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full bg-outline"></div>
-                  Desktop
-                </div>
-              </div>
+          {/* Recent Bookings Table */}
+          <div className="card overflow-hidden">
+            <div className="p-5 border-b border-outline">
+              <h3 className="text-lg font-bold">Recent Bookings</h3>
             </div>
-            
-            <div className="card p-6 flex flex-col min-h-[250px]">
-               <h3 className="text-lg font-bold mb-4">Quick Actions</h3>
-               <div className="space-y-2 w-full">
-                 <button className="btn btn-outline w-full justify-start border-outline text-on-surface">Purge Cache</button>
-                 <button className="btn btn-outline w-full justify-start border-outline text-on-surface">Restart Workers</button>
-                 <button className="btn btn-outline w-full justify-start border-outline text-on-surface">Export Data Dump</button>
-               </div>
-            </div>
-          </div>
-        </div>
-
-        {/* System Alerts */}
-        <div className="card p-0 flex flex-col h-full">
-          <div className="p-5 border-b border-outline">
-            <h3 className="text-lg font-bold flex items-center gap-2">
-              <AlertTriangle className="text-orange-500" size={20} />
-              System Alerts
-            </h3>
-          </div>
-          <div className="divide-y divide-outline flex-1">
-            {alerts.map((alert) => {
-              const Icon = alert.icon
-              return (
-                <div key={alert.id} className="p-5 hover:bg-surface-low transition-colors cursor-pointer">
-                  <div className="flex gap-3">
-                    <Icon 
-                      className={`shrink-0 mt-0.5 ${alert.type === 'error' ? 'text-red-500' : 'text-orange-500'}`} 
-                      size={18} 
-                    />
-                    <div>
-                      <p className="text-sm font-semibold leading-snug">{alert.message}</p>
-                      <span className="text-xs text-on-surface-variant font-medium mt-1 inline-block">{alert.time}</span>
-                    </div>
-                  </div>
-                </div>
-              )
-            })}
-            
-            {alerts.length === 0 && (
-              <div className="p-8 text-center text-on-surface-variant flex flex-col items-center justify-center h-full">
-                <CheckCircle className="text-green-500 mb-2" size={32} />
-                <p className="text-sm font-bold">All systems nominal.</p>
+            {stats.recentBookings.length === 0 ? (
+              <div className="p-8 text-center text-on-surface-variant">
+                <p className="text-sm font-medium">No bookings yet.</p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse min-w-[600px]">
+                  <thead>
+                    <tr className="bg-surface-low border-b border-outline">
+                      <th className="p-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider">Court</th>
+                      <th className="p-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider">User</th>
+                      <th className="p-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider">Date</th>
+                      <th className="p-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-outline">
+                    {stats.recentBookings.map((b) => {
+                      const statusColor: Record<string, string> = {
+                        pending: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400',
+                        confirmed: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
+                        cancelled: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
+                        no_show: 'bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400',
+                      }
+                      return (
+                        <tr key={b.id} className="hover:bg-surface-low/50 transition-colors">
+                          <td className="p-4 text-sm font-semibold">{b.courtName}</td>
+                          <td className="p-4 text-sm font-medium">{b.username}</td>
+                          <td className="p-4 text-sm">{formatDate(b.startAt)}</td>
+                          <td className="p-4">
+                            <span className={`badge ${statusColor[b.status] ?? 'bg-surface-dim text-on-surface'}`}>
+                              {b.status}
+                            </span>
+                          </td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
               </div>
             )}
           </div>
-          <div className="p-4 border-t border-outline mt-auto">
-            <button className="text-sm font-bold text-primary hover:underline w-full text-center">View All Logs</button>
-          </div>
         </div>
 
+        {/* Quick Stats Sidebar */}
+        <div className="card p-0 flex flex-col h-fit">
+          <div className="p-5 border-b border-outline">
+            <h3 className="text-lg font-bold">Quick Actions</h3>
+          </div>
+          <div className="p-5 space-y-2">
+            <a href="/admin/courts" className="btn btn-outline w-full justify-start border-outline text-on-surface">
+              Manage Courts
+            </a>
+            <a href="/admin/items" className="btn btn-outline w-full justify-start border-outline text-on-surface">
+              Manage Items
+            </a>
+            <a href="/admin/users" className="btn btn-outline w-full justify-start border-outline text-on-surface">
+              Manage Users
+            </a>
+          </div>
+        </div>
       </div>
     </div>
   )
