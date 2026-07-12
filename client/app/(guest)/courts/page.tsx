@@ -1,9 +1,9 @@
 import type { Metadata } from 'next'
 import Navbar from '@/components/layout/Navbar'
 import CourtGrid from '@/components/features/CourtGrid'
-import type { CourtCardData } from '@/components/features/CourtCard'
 import { Search } from 'lucide-react'
 import { getAllCourts } from '@/lib/db/queries/courtQueries'
+import Link from 'next/link'
 
 // ─── SEO ──────────────────────────────────────────────────────────────────────
 export const metadata: Metadata = {
@@ -12,147 +12,13 @@ export const metadata: Metadata = {
     'Discover and book pickleball courts across the Philippines. Filter by location, indoor/outdoor, price, and more.',
 }
 
-// ─── Mock fallback ────────────────────────────────────────────────────────────
-// Used when DATABASE_URL is not configured (local dev without DB).
-// Will be removed once the DB is fully seeded and connected.
-const MOCK_COURTS: CourtCardData[] = [
-  {
-    id: '1',
-    courtName: 'BGC Sports Hub — Court A',
-    description: 'Premium indoor facility with pro-grade lighting, smooth hardwood surface, and climate control. Great for serious play.',
-    location: 'Bonifacio Global City, Taguig',
-    pricePerHour: 350,
-    courtType: 'indoor',
-    avgRating: 4.9,
-    reviewCount: 128,
-    accent: '#4F46E5',
-    accentBg: '#EEF2FF',
-    amenities: ['Paddle Rental', 'Locker Room', 'Pro Shop', 'Coaching'],
-  },
-  {
-    id: '2',
-    courtName: 'Pickleball Manila — Court 3',
-    description: 'Open-air court with a stunning city view. Ideal for early morning or late afternoon games with natural ventilation.',
-    location: 'Ayala Ave, Makati City',
-    pricePerHour: 280,
-    courtType: 'outdoor',
-    avgRating: 4.7,
-    reviewCount: 94,
-    accent: '#059669',
-    accentBg: '#ECFDF5',
-    amenities: ['Ball Rental', 'Water Station', 'Parking'],
-  },
-  {
-    id: '3',
-    courtName: 'The Paddle Club — VIP Court',
-    description: 'The most prestigious court in Metro Manila. Fully enclosed, private coaching bays, café, and an electronic scoreboard.',
-    location: 'Eastwood City, Quezon City',
-    pricePerHour: 420,
-    courtType: 'indoor',
-    avgRating: 4.9,
-    reviewCount: 211,
-    accent: '#D97706',
-    accentBg: '#FFFBEB',
-    amenities: ['Paddle Rental', 'Café', 'Coaching', 'Scoreboard', 'Locker Room'],
-  },
-  {
-    id: '4',
-    courtName: 'Eastside Courts — Court 2',
-    description: 'Community-friendly outdoor courts with a welcoming vibe. Great for beginners and recreational players on a budget.',
-    location: 'Kapitolyo, Pasig City',
-    pricePerHour: 250,
-    courtType: 'outdoor',
-    avgRating: 4.6,
-    reviewCount: 67,
-    accent: '#DC2626',
-    accentBg: '#FEF2F2',
-    amenities: ['Ball Rental', 'Parking'],
-  },
-  {
-    id: '5',
-    courtName: 'Smash & Rally Hub',
-    description: 'Mid-tier indoor facility with excellent acoustics and non-slip flooring. Popular with corporate leagues and groups.',
-    location: 'Mandaluyong City',
-    pricePerHour: 380,
-    courtType: 'indoor',
-    avgRating: 4.8,
-    reviewCount: 156,
-    accent: '#7C3AED',
-    accentBg: '#F5F3FF',
-    amenities: ['Paddle Rental', 'Locker Room', 'Coaching'],
-  },
-  {
-    id: '6',
-    courtName: 'Green Court Ortigas',
-    description: 'Bright outdoor courts surrounded by lush landscaping. Excellent surface quality and spacious viewing area for spectators.',
-    location: 'Ortigas Center, Pasig',
-    pricePerHour: 300,
-    courtType: 'outdoor',
-    avgRating: 4.7,
-    reviewCount: 89,
-    accent: '#0369A1',
-    accentBg: '#F0F9FF',
-    amenities: ['Scoreboard', 'Water Station', 'Spectator Seating'],
-  },
-  {
-    id: '7',
-    courtName: 'Sportivo Arena — PB Court 1',
-    description: 'Professional-grade indoor court used for local tournaments. Textured surface, broadcast lighting, and advanced booking system.',
-    location: 'Alabang, Muntinlupa',
-    pricePerHour: 450,
-    courtType: 'indoor',
-    avgRating: 5.0,
-    reviewCount: 42,
-    accent: '#be185d',
-    accentBg: '#fdf2f8',
-    amenities: ['Paddle Rental', 'Pro Shop', 'Coaching', 'Scoreboard', 'Café'],
-  },
-  {
-    id: '8',
-    courtName: 'Harbor Court — Bayside',
-    description: 'Scenic outdoor court right by the bay. Enjoy the breeze while you play. Equipment available for rent on-site.',
-    location: 'CCP Complex, Pasay',
-    pricePerHour: 220,
-    courtType: 'outdoor',
-    avgRating: 4.5,
-    reviewCount: 53,
-    accent: '#0891b2',
-    accentBg: '#ecfeff',
-    amenities: ['Ball Rental', 'Water Station'],
-  },
-  {
-    id: '9',
-    courtName: 'UP ISSI Sports Court',
-    description: 'University-managed indoor court with affordable rates. Open to the public on weekends. Clean facilities and friendly staff.',
-    location: 'UP Diliman, Quezon City',
-    pricePerHour: 180,
-    courtType: 'indoor',
-    avgRating: 4.4,
-    reviewCount: 38,
-    accent: '#65a30d',
-    accentBg: '#f7fee7',
-    amenities: ['Parking', 'Water Station'],
-  },
-]
-
 // ─── Data fetching ────────────────────────────────────────────────────────────
-async function getCourts(): Promise<CourtCardData[]> {
-  // If DATABASE_URL is not set, fall back to mock data
-  if (!process.env.DATABASE_URL) {
-    return MOCK_COURTS
-  }
-
+async function getCourts() {
   try {
-    const courts = await getAllCourts()
-    // If DB is empty (not seeded), fall back to mock data
-    if (courts.length === 0) {
-      return MOCK_COURTS
-    }
-    return courts
-  } catch {
-    // DB connection failed — fall back gracefully
-    console.error('[CourtsPage] Database query failed, using mock data')
-    return MOCK_COURTS
+    return await getAllCourts()
+  } catch (err) {
+    console.error('[CourtsPage] Database query failed:', err)
+    return []
   }
 }
 
@@ -249,12 +115,12 @@ export default async function CourtsPage() {
                     readOnly
                   />
                 </div>
-                <a
+                <Link
                   href="#court-results"
                   className="btn btn-cta rounded-xl px-6 text-sm flex-shrink-0"
                 >
                   Search
-                </a>
+                </Link>
               </div>
             </div>
           </div>
@@ -315,12 +181,12 @@ export default async function CourtsPage() {
               </p>
             </div>
             <div className="flex gap-3 flex-shrink-0">
-              <a href="/login" className="btn btn-primary text-sm px-6 py-3">
+              <Link href="/login" className="btn btn-primary text-sm px-6 py-3">
                 List Your Court
-              </a>
-              <a href="/#how-it-works" className="btn btn-outline text-sm px-6 py-3">
+              </Link>
+              <Link href="/#how-it-works" className="btn btn-outline text-sm px-6 py-3">
                 Learn More
-              </a>
+              </Link>
             </div>
           </div>
         </section>
@@ -335,13 +201,13 @@ export default async function CourtsPage() {
             </span>
             <div className="flex gap-6">
               {['Privacy', 'Terms', 'Contact'].map((l) => (
-                <a
+                <Link
                   key={l}
                   href="#"
                   className="text-xs font-semibold text-white/40 hover:text-white/70 transition-colors"
                 >
                   {l}
-                </a>
+                </Link>
               ))}
             </div>
           </div>

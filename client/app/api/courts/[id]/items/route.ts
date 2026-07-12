@@ -68,9 +68,9 @@ export async function POST(
     })
 
     return NextResponse.json({ court_id: courtId, item_id: body.item_id }, { status: 201 })
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('[POST /api/courts/[id]/items]', error)
-    if (error.code === '23505') { // Postgres unique violation
+    if (typeof error === 'object' && error !== null && 'code' in error && (error as any).code === '23505') { // Postgres unique violation
       return NextResponse.json(
         { error: 'Item is already linked to this court', code: 'CONFLICT' },
         { status: 409 },

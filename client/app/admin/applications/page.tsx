@@ -4,15 +4,28 @@ import { useState } from 'react'
 import { Search, Eye, X, Check, FileText, Image as ImageIcon, MapPin, Mail, Phone, XCircle, UserCircle } from 'lucide-react'
 import { useToast } from '@/components/ui/Toast'
 
+type Application = {
+  id: string
+  businessName: string
+  applicant: string
+  date: string
+  status: string
+  location: string
+  email: string
+  phone: string
+  docs: string[]
+  photos: string[]
+}
+
 export default function ApplicationsPage() {
   const toast = useToast()
   
-  const [applications] = useState([
+  const [applications] = useState<Application[]>([
     { id: 'app_501', businessName: 'Rally Pickleball Club', applicant: 'John Doe', date: '2026-07-03', status: 'Pending', location: '123 Main St, Metro Manila', email: 'john@rallyclub.ph', phone: '+63 912 345 6789', docs: ['Business Permit', 'ID'], photos: ['Court 1', 'Lobby'] },
     { id: 'app_502', businessName: 'Smash Haven', applicant: 'Jane Smith', date: '2026-07-01', status: 'In Review', location: '45 BGC Avenue, Taguig', email: 'jane@smashhaven.com', phone: '+63 998 765 4321', docs: ['Business Permit'], photos: ['Main View'] },
   ])
 
-  const [selectedApp, setSelectedApp] = useState<any>(null)
+  const [selectedApp, setSelectedApp] = useState<Application | null>(null)
   const [rejectReason, setRejectReason] = useState('')
   const [isRejecting, setIsRejecting] = useState(false)
 

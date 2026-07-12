@@ -127,7 +127,7 @@ export default function AuthPage() {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search)
       if (params.get('mode') === 'register') {
-        setView('register')
+        setTimeout(() => setView('register'), 0)
       }
     }
   }, [])

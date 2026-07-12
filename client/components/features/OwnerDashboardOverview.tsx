@@ -1,33 +1,56 @@
 'use client'
 
-import { useState } from 'react'
-import { Calendar, Clock, DollarSign, Users, X } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Calendar, Clock, DollarSign, Users, X, Loader2 } from 'lucide-react'
 
-// Static mock data for the UI
-const MOCK_METRICS = [
-  { label: "Today's Revenue", value: '₱4,500', icon: <DollarSign size={20} />, trend: '+12% from yesterday', positive: true },
-  { label: 'Today\'s Bookings', value: '12', icon: <Calendar size={20} />, trend: '3 remaining today', positive: true },
-  { label: 'Upcoming Bookings', value: '34', icon: <Clock size={20} />, trend: 'Next 7 days', positive: true },
-  { label: 'Total Players', value: '156', icon: <Users size={20} />, trend: '+24 new this week', positive: true },
-]
-
-const TIMELINE_START_HOUR = 12 // 12:00 PM
-const TIMELINE_END_HOUR = 20 // 8:00 PM
+const TIMELINE_START_HOUR = 6 // 6:00 AM
+const TIMELINE_END_HOUR = 22 // 10:00 PM
 const TOTAL_HOURS = TIMELINE_END_HOUR - TIMELINE_START_HOUR
 const TIMELINE_HOURS = Array.from({ length: TOTAL_HOURS + 1 }, (_, i) => TIMELINE_START_HOUR + i)
 
-const INITIAL_COURTS = ['Court 1 - Indoor', 'Court 2 - Indoor', 'Court 3 - Outdoor', 'Court 4 - Outdoor']
-
-const MOCK_TIMELINE_BOOKINGS = [
-  { id: '1', court: 'Court 1 - Indoor', startHour: 14, duration: 1, user: 'johndoe', status: 'confirmed' },
-  { id: '2', court: 'Court 3 - Outdoor', startHour: 15, duration: 2, user: 'janem', status: 'confirmed' },
-  { id: '3', court: 'Court 1 - Indoor', startHour: 16, duration: 1.5, user: 'mikep', status: 'pending' },
-  { id: '4', court: 'Court 2 - Indoor', startHour: 18, duration: 2, user: 'sarahs', status: 'confirmed' },
-  { id: '5', court: 'Court 4 - Outdoor', startHour: 13, duration: 2, user: 'alexb', status: 'confirmed' },
-]
+type TimelineBooking = {
+  id: string
+  court: string
+  startHour: number
+  duration: number
+  user: string
+  status: string
+}
 
 export function OwnerDashboardOverview() {
-  const [courts, setCourts] = useState<string[]>(INITIAL_COURTS)
+  const [courts, setCourts] = useState<string[]>([])
+  const [timelineBookings, setTimelineBookings] = useState<TimelineBooking[]>([])
+  const [metrics, setMetrics] = useState({
+    revenue: '₱0',
+    todayBookings: 0,
+    upcomingBookings: 0,
+    totalPlayers: 0,
+  })
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const res = await fetch('/api/owner/dashboard')
+        const data = await res.json()
+        if (data.courts) setCourts(data.courts)
+        if (data.timelineBookings) setTimelineBookings(data.timelineBookings)
+        if (data.metrics) setMetrics(data.metrics)
+      } catch (e) {
+        console.error('Failed to load dashboard data', e)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchData()
+  }, [])
+
+  const METRICS_UI = [
+    { label: "Today's Revenue", value: metrics.revenue, icon: <DollarSign size={20} />, trend: '', positive: true },
+    { label: "Today's Bookings", value: metrics.todayBookings.toString(), icon: <Calendar size={20} />, trend: '', positive: true },
+    { label: "Upcoming Bookings", value: metrics.upcomingBookings.toString(), icon: <Clock size={20} />, trend: '', positive: true },
+    { label: "Total Players", value: metrics.totalPlayers.toString(), icon: <Users size={20} />, trend: '', positive: true },
+  ]
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
   const [newCourtName, setNewCourtName] = useState('')
   const [newCourtType, setNewCourtType] = useState('Indoor')
@@ -41,6 +64,14 @@ export function OwnerDashboardOverview() {
     }
     setNewCourtName('')
     setIsAddModalOpen(false)
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-[50vh] flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-pickle-500" />
+      </div>
+    )
   }
 
   return (
@@ -109,7 +140,7 @@ export function OwnerDashboardOverview() {
 
       {/* ── Key Metrics ── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {MOCK_METRICS.map((metric, idx) => (
+        {METRICS_UI.map((metric, idx) => (
           <div key={idx} className="bg-surface p-5 rounded-2xl border border-outline shadow-sm flex flex-col gap-3 hover:shadow-md transition-shadow">
             <div className="flex items-center gap-3 text-on-surface-variant">
               <div className="w-10 h-10 rounded-xl bg-mist flex items-center justify-center text-primary">
@@ -189,7 +220,7 @@ export function OwnerDashboardOverview() {
                 {/* Court Columns */}
                 {courts.map(court => (
                   <div key={court} className="flex-1 relative border-r border-outline/30 last:border-0 z-10">
-                    {MOCK_TIMELINE_BOOKINGS.filter(b => b.court === court).map(booking => {
+                    {timelineBookings.filter(b => b.court === court).map(booking => {
                       const topPct = ((booking.startHour - TIMELINE_START_HOUR) / TOTAL_HOURS) * 100
                       const heightPct = (booking.duration / TOTAL_HOURS) * 100
                       

@@ -220,7 +220,7 @@ export default function MyCourtPage() {
               Closed Dates
             </h2>
             <p className="text-sm text-on-surface-variant mb-4">
-              Click a date to "crush it out" and mark the court as closed (e.g., maintenance, holidays).
+              Click a date to &quot;crush it out&quot; and mark the court as closed (e.g., maintenance, holidays).
             </p>
             
             <div className="border border-outline rounded-lg p-4 bg-surface-low select-none shadow-inner">

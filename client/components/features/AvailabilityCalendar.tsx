@@ -80,7 +80,7 @@ export default function AvailabilityCalendar({
   }, [courtId, selectedDate])
 
   useEffect(() => {
-    fetchAvailability()
+    Promise.resolve().then(() => fetchAvailability())
   }, [fetchAvailability])
 
   // Check if a specific hour on the selected date is available

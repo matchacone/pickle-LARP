@@ -4,16 +4,26 @@ import { useState } from 'react'
 import { Search, Filter, Shield, Eye, X, AlertOctagon } from 'lucide-react'
 import { useToast } from '@/components/ui/Toast'
 
+type Report = {
+  id: string
+  reporter: string
+  offender: string
+  category: string
+  date: string
+  status: string
+  details: string
+}
+
 export default function ReportsPage() {
   const toast = useToast()
   
-  const [reports] = useState([
+  const [reports] = useState<Report[]>([
     { id: 'rpt_1042', reporter: 'Diana Prince', offender: 'User usr_009', category: 'Harassment', date: '2026-07-03', status: 'Pending', details: 'User was sending abusive messages in the booking chat.' },
     { id: 'rpt_1041', reporter: 'Bob Jones', offender: 'Court crt_88', category: 'False Info', date: '2026-07-02', status: 'In Review', details: 'Court description says indoor but photos clearly show it is outdoors.' },
     { id: 'rpt_1040', reporter: 'Alice Smith', offender: 'Review rev_55', category: 'Spam', date: '2026-07-01', status: 'Resolved', details: 'Review contains links to external shady websites.' },
   ])
 
-  const [selectedReport, setSelectedReport] = useState<any>(null)
+  const [selectedReport, setSelectedReport] = useState<Report | null>(null)
 
   const handleAction = (action: string) => {
     toast(`Action: ${action}`, `Successfully processed report ${selectedReport?.id}`, 'success')
@@ -147,7 +157,7 @@ export default function ReportsPage() {
               <div>
                 <p className="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-2">Description / Evidence</p>
                 <p className="text-sm leading-relaxed p-4 bg-surface-low rounded-md border border-outline">
-                  "{selectedReport.details}"
+                  &quot;{selectedReport.details}&quot;
                 </p>
               </div>
             </div>

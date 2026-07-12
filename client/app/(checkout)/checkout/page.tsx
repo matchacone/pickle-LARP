@@ -137,7 +137,7 @@ function CheckoutContent() {
   // Fetch court data on mount
   useEffect(() => {
     if (!courtId) {
-      setCourtLoading(false)
+      setTimeout(() => setCourtLoading(false), 0)
       return
     }
 
@@ -196,7 +196,7 @@ function CheckoutContent() {
   // Payment method state
   const [paymentMethod, setPaymentMethod] = useState<string>('Credit Card')
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [isConfirmed, setIsConfirmed] = useState(false)
+  const [isConfirmed] = useState(false)
   const [bookingResult, setBookingResult] = useState<{
     bookingId: string
     invoiceId: string

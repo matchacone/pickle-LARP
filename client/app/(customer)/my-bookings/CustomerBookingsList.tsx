@@ -148,6 +148,29 @@ function BookingCard({
               <span className="text-on-surface-variant">
                 Invoice: {booking.invoice.status}
               </span>
+              {booking.invoice.status === 'unpaid' && booking.status !== 'cancelled' && (
+                <button
+                  onClick={async () => {
+                    try {
+                      const res = await fetch('/api/payments/initiate', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ invoice_id: booking.invoice!.id }),
+                      })
+                      const data = await res.json()
+                      if (!res.ok) throw new Error(data.error || 'Failed to initiate payment')
+                      if (data.checkout_url) {
+                        window.location.href = data.checkout_url
+                      }
+                    } catch (err) {
+                      alert(err instanceof Error ? err.message : 'Payment failed')
+                    }
+                  }}
+                  className="btn btn-primary py-1 px-3 text-xs ml-auto"
+                >
+                  Pay Now
+                </button>
+              )}
             </div>
           )}
 
