@@ -2,6 +2,16 @@
 
 This document outlines the comprehensive unit testing strategy for the PickleAll application, using **Vitest** and **React Testing Library**. The tests are separated by architectural category, detailing exactly what features and edge cases must be covered.
 
+## Universal Bug Categories
+
+Across all the testing categories below, we will specifically target these common classes of bugs:
+
+1. **Edge Case & Boundary Errors**: Testing zero, negative numbers, extremely large inputs, and off-by-one errors (e.g., booking durations that cross midnight, zero-dollar invoices).
+2. **State & Concurrency Issues**: Testing race conditions, double-booking prevention, and stale UI state (e.g., booking a court slot at the exact same time as another user).
+3. **Null/Undefined & Invalid Data**: Ensuring the app gracefully handles missing parameters, malformed JSON, and unexpected null values from the database or API.
+4. **Security & Authorization Bypasses**: Verifying that IDOR (Insecure Direct Object Reference) is prevented, roles cannot be spoofed, and signatures (like payment webhooks) are strictly validated.
+5. **Type & Formatting Errors**: Catching unexpected type coercions (string vs number for prices) and unescaped entities that could break the UI.
+
 ## 1. Database Queries (Data Access Layer)
 
 Testing the Drizzle ORM queries is critical as they handle the core business logic and state of the application. Since we decided to use Vitest, we will **mock the database responses** to keep these tests fast, deterministic, and isolated.
