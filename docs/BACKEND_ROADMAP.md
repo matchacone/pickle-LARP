@@ -109,18 +109,17 @@ All frontend pages were initially built with hardcoded mock data. This roadmap t
 
 ---
 
-## Phase 6 — Admin Panel (F-11)
+## Phase 6 — Admin Panel (F-11) ✅
 
-**Status:** Not started
+**Status:** ✅ Complete
 
 **Goal:** Wire the admin dashboard to real data with CRUD operations for courts, items, and users.
 
-**Scope:**
-- `GET/POST/PUT/DELETE /api/admin/courts` — court management
-- `GET/POST/PUT/DELETE /api/admin/items` — item/equipment management
-- `GET/PUT /api/admin/users` — user management (role changes, suspensions)
-- `GET /api/admin/reports` — basic reporting (bookings, revenue)
-- Role-guard all admin routes (middleware + Route Handler checks)
+**What was built:**
+- `lib/db/queries/adminQueries.ts` — containing all admin-specific queries (`getAllUsers`, `suspendUser`, `updateUserRole`, `createCourt`, `updateCourt`, `deleteCourt`, etc.)
+- API routes implemented for court management (`/api/courts`), item management (`/api/items`), and user suspension (`/api/admin/users/[id]/suspend`)
+- Middleware role-guards configured to protect `/admin` routes.
+- `getAdminDashboardStats` implemented to power the admin dashboard reporting metrics.
 
 **Dependencies:** Phase 2 (Auth + role guards), Phase 4 (booking data for reports)
 
