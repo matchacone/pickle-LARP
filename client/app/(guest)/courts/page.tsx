@@ -1,9 +1,10 @@
 import type { Metadata } from 'next'
 import Navbar from '@/components/layout/Navbar'
 import CourtGrid from '@/components/features/CourtGrid'
-import { Search } from 'lucide-react'
+
 import { getAllCourts } from '@/lib/db/queries/courtQueries'
 import Link from 'next/link'
+import { HeroSearch } from '@/components/features/HeroSearch'
 
 // ─── SEO ──────────────────────────────────────────────────────────────────────
 export const metadata: Metadata = {
@@ -99,29 +100,7 @@ export default async function CourtsPage() {
               </p>
 
               {/* Search bar */}
-              <div className="mt-8 flex gap-3">
-                <div className="relative flex-1">
-                  <Search
-                    size={16}
-                    className="absolute left-4 top-1/2 -translate-y-1/2 text-white/40 pointer-events-none"
-                    aria-hidden="true"
-                  />
-                  <input
-                    id="hero-search-location"
-                    type="text"
-                    placeholder="Search by city or court name…"
-                    className="w-full pl-11 pr-4 py-3 rounded-xl bg-white/10 border border-white/20 text-white placeholder:text-white/40 text-sm font-medium outline-none focus:border-green focus:bg-white/15 transition-all duration-150"
-                    aria-label="Search courts by location"
-                    readOnly
-                  />
-                </div>
-                <Link
-                  href="#court-results"
-                  className="btn btn-cta rounded-xl px-6 text-sm flex-shrink-0"
-                >
-                  Search
-                </Link>
-              </div>
+              <HeroSearch />
             </div>
           </div>
 
