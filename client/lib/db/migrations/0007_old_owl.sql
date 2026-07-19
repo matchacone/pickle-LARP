@@ -1,0 +1,1 @@
+ALTER TABLE "court" ADD COLUMN "images" text[] DEFAULT ARRAY[]::text[] NOT NULL;

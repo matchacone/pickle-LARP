@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react'
 import { Save, Image as ImageIcon, MapPin, DollarSign, Info, List, Clock, Calendar as CalendarIcon, Loader2 } from 'lucide-react'
 import { toast } from 'react-hot-toast'
 
+import { createBrowserClient } from '@supabase/ssr'
+
 const HOURS = Array.from({ length: 24 }, (_, i) => {
   const ampm = i >= 12 ? 'PM' : 'AM'
   const displayHour = i % 12 === 0 ? 12 : i % 12
@@ -23,6 +25,13 @@ export default function MyCourtPage() {
   const [courtType, setCourtType] = useState('indoor')
   const [status, setStatus] = useState('active')
   const [pricePerHour, setPricePerHour] = useState('400.00')
+  const [images, setImages] = useState<string[]>([])
+  const [uploadingImage, setUploadingImage] = useState(false)
+
+  const supabase = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
+  )
 
   const [schedule, setSchedule] = useState([
     { day: 'Monday', isOpen: true, open: '06:00', close: '22:00' },
@@ -55,6 +64,9 @@ export default function MyCourtPage() {
           setCourtType(data.court.courtType || 'indoor')
           setStatus(data.court.status || 'active')
           setPricePerHour(data.court.pricePerHour || '400.00')
+          if (data.court.images) {
+            setImages(data.court.images)
+          }
           // Set closed dates
           if (data.closedDates) {
             setClosedDates(data.closedDates.map((c: any) => c.closedDate))
@@ -102,7 +114,8 @@ export default function MyCourtPage() {
           status,
           pricePerHour,
           schedule,
-          amenities: selectedAmenities
+          amenities: selectedAmenities,
+          images
         })
       })
       if (!res.ok) throw new Error('Failed to save')
@@ -172,6 +185,42 @@ export default function MyCourtPage() {
         ? prev.filter(a => a !== amenity)
         : [...prev, amenity]
     )
+  }
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    
+    setUploadingImage(true)
+    try {
+      const ext = file.name.split('.').pop()
+      const filename = `${Math.random().toString(36).substring(2, 15)}_${Date.now()}.${ext}`
+      
+      const { data, error } = await supabase.storage
+        .from('court_images')
+        .upload(filename, file)
+        
+      if (error) throw error
+      
+      // Get the public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('court_images')
+        .getPublicUrl(data.path)
+        
+      setImages(prev => [...prev, publicUrl])
+      toast.success('Image uploaded!')
+    } catch (error: unknown) {
+      toast.error('Failed to upload image')
+      console.error(error)
+    } finally {
+      setUploadingImage(false)
+      // reset file input
+      e.target.value = ''
+    }
+  }
+
+  const removeImage = (urlToRemove: string) => {
+    setImages(prev => prev.filter(url => url !== urlToRemove))
   }
 
   // Calculate days in month and starting offset
@@ -479,29 +528,33 @@ export default function MyCourtPage() {
             </h2>
             
             <div className="space-y-4">
-              <div className="aspect-video bg-mist rounded-lg border-2 border-dashed border-outline-strong flex flex-col items-center justify-center p-6 text-center cursor-pointer hover:bg-surface-low transition-colors group">
+              <label className="aspect-video bg-mist rounded-lg border-2 border-dashed border-outline-strong flex flex-col items-center justify-center p-6 text-center cursor-pointer hover:bg-surface-low transition-colors group relative overflow-hidden">
+                <input 
+                  type="file" 
+                  accept="image/jpeg, image/png"
+                  onChange={handleImageUpload}
+                  disabled={uploadingImage}
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed"
+                />
                 <div className="w-12 h-12 bg-surface rounded-full flex items-center justify-center mb-3 group-hover:scale-110 transition-transform shadow-sm">
-                  <ImageIcon size={24} className="text-on-surface-variant" />
+                  {uploadingImage ? <Loader2 size={24} className="text-primary animate-spin" /> : <ImageIcon size={24} className="text-on-surface-variant" />}
                 </div>
-                <p className="text-sm font-bold mb-1">Click to upload photos</p>
+                <p className="text-sm font-bold mb-1">{uploadingImage ? 'Uploading...' : 'Click to upload photos'}</p>
                 <p className="text-xs text-on-surface-variant">PNG, JPG up to 5MB</p>
-              </div>
+              </label>
 
-              {/* Mock Uploaded Images */}
-              <div className="flex gap-2 overflow-x-auto pb-2">
-                <div className="relative w-20 h-20 rounded-md overflow-hidden border border-outline flex-shrink-0 bg-asphalt">
-                  <div className="absolute inset-0 bg-gradient-to-tr from-green-500/20 to-transparent"></div>
-                  <button className="absolute top-1 right-1 bg-surface/80 rounded-full p-1 hover:bg-red-50 hover:text-red-600 transition-colors">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
-                  </button>
+              {/* Uploaded Images */}
+              {images.length > 0 && (
+                <div className="flex gap-2 overflow-x-auto pb-2">
+                  {images.map((url, idx) => (
+                    <div key={idx} className="relative w-20 h-20 rounded-md overflow-hidden border border-outline flex-shrink-0 bg-asphalt bg-cover bg-center" style={{ backgroundImage: `url(${url})` }}>
+                      <button onClick={() => removeImage(url)} className="absolute top-1 right-1 bg-surface/80 rounded-full p-1 hover:bg-red-50 hover:text-red-600 transition-colors z-10">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                      </button>
+                    </div>
+                  ))}
                 </div>
-                <div className="relative w-20 h-20 rounded-md overflow-hidden border border-outline flex-shrink-0 bg-asphalt">
-                  <div className="absolute inset-0 bg-gradient-to-bl from-blue-500/20 to-transparent"></div>
-                  <button className="absolute top-1 right-1 bg-surface/80 rounded-full p-1 hover:bg-red-50 hover:text-red-600 transition-colors">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
-                  </button>
-                </div>
-              </div>
+              )}
             </div>
           </section>
         </div>

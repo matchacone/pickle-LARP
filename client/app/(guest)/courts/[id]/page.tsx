@@ -126,7 +126,7 @@ export default async function CourtDetailPage({ params }: { params: Promise<{ id
   const colors = court.accent && court.accentBg
     ? { accent: court.accent, accentBg: court.accentBg }
     : getCourtColors(court.id)
-  const images = court.images ?? getCourtImages(court.id)
+  const images = court.images && court.images.length > 0 ? court.images : getCourtImages(court.id)
   const ratingDisplay = court.avgRating > 0 ? court.avgRating.toFixed(1) : 'New'
 
   return (

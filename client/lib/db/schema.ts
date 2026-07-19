@@ -32,6 +32,7 @@ export const court = pgTable('court', {
   courtType: text('court_type'),
   status: text('status').notNull().default('active'),
   ownerId: uuid('owner_id').references(() => profiles.id, { onDelete: 'set null' }),
+  images: text('images').array().notNull().default(sql`ARRAY[]::text[]`),
   createdAt: tstz('created_at').notNull().defaultNow(),
   updatedAt: tstz('updated_at').notNull().defaultNow(),
 }, (table) => [

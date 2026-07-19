@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { MapPin } from 'lucide-react'
-import { getCourtColors, getCourtImages } from '@/lib/utils/courtColors'
+import { getCourtColors } from '@/lib/utils/courtColors'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -54,55 +54,60 @@ export default function CourtCard({ court }: { court: CourtCardData }) {
       className="card group overflow-hidden flex flex-col hover:-translate-y-1 transition-transform duration-200"
       aria-label={court.courtName}
     >
-      {/* ── Geometric art thumbnail ─────────────────── */}
+      {/* ── Image / Geometric art thumbnail ─────────────────── */}
       <div
-        className="relative h-48 flex items-end p-4 flex-shrink-0"
-        style={{ backgroundColor: colors.accentBg }}
+        className="relative h-48 flex items-end p-4 flex-shrink-0 bg-cover bg-center"
+        style={{
+          backgroundColor: colors.accentBg,
+          backgroundImage: court.images && court.images.length > 0 ? `url('${court.images[0]}')` : undefined,
+        }}
       >
-        {/* Court line decorations */}
-        <div className="absolute inset-0 overflow-hidden" aria-hidden="true">
-          {/* Outer rectangle */}
-          <div
-            className="absolute inset-5 rounded-md opacity-20"
-            style={{ border: `2.5px solid ${colors.accent}` }}
-          />
-          {/* Center vertical line */}
-          <div
-            className="absolute left-1/2 top-5 bottom-5 w-px opacity-20"
-            style={{ backgroundColor: colors.accent }}
-          />
-          {/* Center horizontal line */}
-          <div
-            className="absolute left-5 right-5 top-1/2 h-px opacity-20"
-            style={{ backgroundColor: colors.accent }}
-          />
-          {/* Kitchen box — top */}
-          <div
-            className="absolute left-5 right-5 top-5 opacity-10"
-            style={{
-              height: '28%',
-              borderBottom: `2px solid ${colors.accent}`,
-            }}
-          />
-          {/* Kitchen box — bottom */}
-          <div
-            className="absolute left-5 right-5 bottom-5 opacity-10"
-            style={{
-              height: '28%',
-              borderTop: `2px solid ${colors.accent}`,
-            }}
-          />
-          {/* Accent circle */}
-          <div
-            className="absolute top-3 right-3 w-12 h-12 rounded-full opacity-15"
-            style={{ backgroundColor: colors.accent }}
-          />
-          {/* Pickleball dot */}
-          <div
-            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-4 h-4 rounded-full opacity-40"
-            style={{ backgroundColor: colors.accent }}
-          />
-        </div>
+        {/* Court line decorations (only show if no image) */}
+        {!(court.images && court.images.length > 0) && (
+          <div className="absolute inset-0 overflow-hidden" aria-hidden="true">
+            {/* Outer rectangle */}
+            <div
+              className="absolute inset-5 rounded-md opacity-20"
+              style={{ border: `2.5px solid ${colors.accent}` }}
+            />
+            {/* Center vertical line */}
+            <div
+              className="absolute left-1/2 top-5 bottom-5 w-px opacity-20"
+              style={{ backgroundColor: colors.accent }}
+            />
+            {/* Center horizontal line */}
+            <div
+              className="absolute left-5 right-5 top-1/2 h-px opacity-20"
+              style={{ backgroundColor: colors.accent }}
+            />
+            {/* Kitchen box — top */}
+            <div
+              className="absolute left-5 right-5 top-5 opacity-10"
+              style={{
+                height: '28%',
+                borderBottom: `2px solid ${colors.accent}`,
+              }}
+            />
+            {/* Kitchen box — bottom */}
+            <div
+              className="absolute left-5 right-5 bottom-5 opacity-10"
+              style={{
+                height: '28%',
+                borderTop: `2px solid ${colors.accent}`,
+              }}
+            />
+            {/* Accent circle */}
+            <div
+              className="absolute top-3 right-3 w-12 h-12 rounded-full opacity-15"
+              style={{ backgroundColor: colors.accent }}
+            />
+            {/* Pickleball dot */}
+            <div
+              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-4 h-4 rounded-full opacity-40"
+              style={{ backgroundColor: colors.accent }}
+            />
+          </div>
+        )}
 
         {/* Price chip — top-left */}
         <div className="absolute top-3 left-3 bg-white rounded-lg px-3 py-1.5 shadow-float">

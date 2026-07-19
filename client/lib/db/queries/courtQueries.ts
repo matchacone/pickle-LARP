@@ -104,6 +104,7 @@ export async function getAllCourts(): Promise<CourtListItem[]> {
       status: c.status,
       ownerId: c.ownerId,
       amenities: itemsByCourtId.get(c.id) ?? [],
+      images: c.images,
       reviewCount: stats?.reviewCount ?? 0,
       avgRating: 0, // No rating column in schema — Phase 2 enhancement
     }
@@ -157,6 +158,7 @@ export async function getCourtById(courtId: string): Promise<CourtDetail | null>
     status: foundCourt.status,
     ownerId: foundCourt.ownerId,
     amenities: courtItems.map((ci) => ci.itemName),
+    images: foundCourt.images,
     reviewCount: courtReviews.length,
     avgRating: 0,
     reviews: courtReviews.map((r) => ({

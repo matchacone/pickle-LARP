@@ -53,7 +53,7 @@ export async function PUT(req: Request) {
   }
 
   const body = await req.json()
-  const { id, courtName, description, location, pricePerHour, courtType, status, schedule, amenities } = body
+  const { id, courtName, description, location, pricePerHour, courtType, status, schedule, amenities, images } = body
 
   // Ensure owner owns this court
   const [existing] = await db.select().from(court).where(eq(court.id, id))
@@ -68,6 +68,7 @@ export async function PUT(req: Request) {
     pricePerHour: pricePerHour.toString(),
     courtType,
     status,
+    images: images || [],
     updatedAt: new Date()
   }).where(eq(court.id, id))
 
