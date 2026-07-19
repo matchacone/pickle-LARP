@@ -17,6 +17,8 @@ export type BookingListItem = {
   courtId: string
   courtName: string
   location: string | null
+  courtType: string | null
+  pricePerHour: number
   startAt: Date
   endAt: Date
   status: string
@@ -156,6 +158,8 @@ export async function getUserBookings(
       courtId: booking.courtId,
       courtName: court.courtName,
       location: court.location,
+      courtType: court.courtType,
+      pricePerHour: court.pricePerHour,
       startAt: booking.startAt,
       endAt: booking.endAt,
       status: booking.status,
@@ -176,6 +180,8 @@ export async function getUserBookings(
     courtId: r.courtId,
     courtName: r.courtName,
     location: r.location,
+    courtType: r.courtType,
+    pricePerHour: Number(r.pricePerHour ?? 0),
     startAt: r.startAt,
     endAt: r.endAt,
     status: r.status,

@@ -13,6 +13,7 @@ import {
   CheckCircle2,
 } from 'lucide-react'
 import type { BookingListItem } from '@/lib/db/queries/bookingQueries'
+import { ReceiptModal } from '@/components/features/ReceiptModal'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -67,9 +68,11 @@ function canCancel(booking: BookingListItem): boolean {
 function BookingCard({
   booking,
   onCancel,
+  onViewReceipt,
 }: {
   booking: BookingListItem
   onCancel: (id: string) => Promise<void>
+  onViewReceipt: (b: BookingListItem) => void
 }) {
   const [isCancelling, setIsCancelling] = useState(false)
   const [cancelError, setCancelError] = useState<string | null>(null)
@@ -148,6 +151,12 @@ function BookingCard({
               <span className="text-on-surface-variant">
                 Invoice: {booking.invoice.status}
               </span>
+              <button 
+                onClick={() => onViewReceipt(booking)}
+                className="text-primary hover:underline font-semibold"
+              >
+                View Receipt
+              </button>
               {booking.invoice.status === 'unpaid' && booking.status !== 'cancelled' && (
                 <button
                   onClick={async () => {
@@ -214,6 +223,7 @@ export default function CustomerBookingsList({ upcoming, past }: Props) {
   const router = useRouter()
   const [upcomingBookings, setUpcomingBookings] = useState(upcoming)
   const [pastBookings, setPastBookings] = useState(past)
+  const [selectedReceipt, setSelectedReceipt] = useState<BookingListItem | null>(null)
 
   const handleCancel = async (bookingId: string) => {
     const res = await fetch(`/api/bookings/${bookingId}`, {
@@ -241,6 +251,13 @@ export default function CustomerBookingsList({ upcoming, past }: Props) {
 
   return (
     <div className="space-y-10">
+      {selectedReceipt && (
+        <ReceiptModal
+          booking={selectedReceipt}
+          onClose={() => setSelectedReceipt(null)}
+        />
+      )}
+
       {/* Upcoming */}
       <div>
         <h2 className="text-lg font-bold text-asphalt mb-4 flex items-center gap-2">
@@ -257,7 +274,7 @@ export default function CustomerBookingsList({ upcoming, past }: Props) {
         ) : (
           <div className="flex flex-col gap-3">
             {upcomingBookings.map((b) => (
-              <BookingCard key={b.id} booking={b} onCancel={handleCancel} />
+              <BookingCard key={b.id} booking={b} onCancel={handleCancel} onViewReceipt={setSelectedReceipt} />
             ))}
           </div>
         )}
@@ -272,7 +289,7 @@ export default function CustomerBookingsList({ upcoming, past }: Props) {
           </h2>
           <div className="flex flex-col gap-3 opacity-75">
             {pastBookings.map((b) => (
-              <BookingCard key={b.id} booking={b} onCancel={handleCancel} />
+              <BookingCard key={b.id} booking={b} onCancel={handleCancel} onViewReceipt={setSelectedReceipt} />
             ))}
           </div>
         </div>

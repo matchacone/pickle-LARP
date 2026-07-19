@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
-import { profiles } from '@/lib/db/schema'
+import { profiles, court } from '@/lib/db/schema'
 import { eq } from 'drizzle-orm'
 import { createServerClient } from '@/lib/supabase/server'
 import {
@@ -48,7 +48,7 @@ export async function GET(
     // We need to check userId from the booking table directly
     const bookingRecord = await db.query.booking.findFirst({
       where: (b, { eq: eqOp }) => eqOp(b.id, bookingId),
-      columns: { userId: true },
+      columns: { userId: true, courtId: true },
     })
 
     if (!bookingRecord) {
@@ -61,16 +61,26 @@ export async function GET(
     const isOwner = bookingRecord.userId === user.id
 
     if (!isOwner) {
-      const [profile] = await db
-        .select({ role: profiles.role })
-        .from(profiles)
-        .where(eq(profiles.id, user.id))
+      // Allow if the user is the owner of the court
+      const [courtRecord] = await db
+        .select({ ownerId: court.ownerId })
+        .from(court)
+        .where(eq(court.id, bookingRecord.courtId))
+        
+      const isCourtOwner = courtRecord?.ownerId === user.id
+      
+      if (!isCourtOwner) {
+        const [profile] = await db
+          .select({ role: profiles.role })
+          .from(profiles)
+          .where(eq(profiles.id, user.id))
 
-      if (profile?.role !== 'admin') {
-        return NextResponse.json(
-          { error: 'You can only view your own bookings', code: 'FORBIDDEN' },
-          { status: 403 },
-        )
+        if (profile?.role !== 'admin') {
+          return NextResponse.json(
+            { error: 'You can only view your own bookings', code: 'FORBIDDEN' },
+            { status: 403 },
+          )
+        }
       }
     }
 

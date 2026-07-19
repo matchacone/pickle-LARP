@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import { CheckCircle2, Search, Filter, XCircle, Loader2, Clock } from 'lucide-react'
+import { ReceiptModal } from '@/components/features/ReceiptModal'
+import type { BookingListItem } from '@/lib/db/queries/bookingQueries'
 
 type Booking = {
   id: string
@@ -16,6 +18,23 @@ type Booking = {
 export function OwnerBookingsTable() {
   const [bookings, setBookings] = useState<Booking[]>([])
   const [loading, setLoading] = useState(true)
+  const [selectedReceipt, setSelectedReceipt] = useState<BookingListItem | null>(null)
+  const [receiptLoadingId, setReceiptLoadingId] = useState<string | null>(null)
+
+  const handleViewReceipt = async (bookingId: string) => {
+    setReceiptLoadingId(bookingId)
+    try {
+      const res = await fetch(`/api/bookings/${bookingId}`)
+      if (res.ok) {
+        const data = await res.json()
+        setSelectedReceipt(data.booking)
+      }
+    } catch (err) {
+      console.error('Failed to fetch receipt', err)
+    } finally {
+      setReceiptLoadingId(null)
+    }
+  }
 
   useEffect(() => {
     async function fetchBookings() {
@@ -36,6 +55,13 @@ export function OwnerBookingsTable() {
 
   return (
     <div className="flex flex-col gap-6">
+      {selectedReceipt && (
+        <ReceiptModal
+          booking={selectedReceipt}
+          onClose={() => setSelectedReceipt(null)}
+        />
+      )}
+
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
           <h1 className="text-3xl font-extrabold tracking-tight text-asphalt">Bookings History</h1>
@@ -118,8 +144,12 @@ export function OwnerBookingsTable() {
                     </td>
                     <td className="px-6 py-4 font-bold text-asphalt">{booking.amount}</td>
                     <td className="px-6 py-4 text-right">
-                      <button className="text-primary font-semibold hover:text-asphalt transition-colors opacity-0 group-hover:opacity-100">
-                        View
+                      <button 
+                        onClick={() => handleViewReceipt(booking.id)}
+                        disabled={receiptLoadingId === booking.id}
+                        className="text-primary font-semibold hover:text-asphalt transition-colors opacity-0 group-hover:opacity-100 disabled:opacity-50"
+                      >
+                        {receiptLoadingId === booking.id ? <Loader2 size={16} className="animate-spin inline" /> : 'View'}
                       </button>
                     </td>
                   </tr>
