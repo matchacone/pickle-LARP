@@ -41,7 +41,13 @@ export async function POST(request: NextRequest) {
 
   // 3. Fetch invoice and validate ownership
   try {
-    const inv = await getInvoiceForPayment(invoice_id)
+    let inv = await getInvoiceForPayment(invoice_id)
+
+    // Handle potential read-replica replication lag by retrying once
+    if (!inv) {
+      await new Promise((resolve) => setTimeout(resolve, 500))
+      inv = await getInvoiceForPayment(invoice_id)
+    }
 
     if (!inv) {
       return NextResponse.json(

@@ -602,54 +602,20 @@ function CheckoutContent() {
                         {/* Credit Card Fields - Only show if selected and is Credit Card */}
                         {isSelected && method.id === 'Credit Card' && (
                           <div className="p-4 border-2 border-outline-strong rounded-xl bg-surface-low space-y-4 animate-fade-in text-left">
-                            <div>
-                              <label className="block text-[10px] font-bold text-asphalt mb-1.5 uppercase tracking-widest">
-                                Name on Card
-                              </label>
-                              <input
-                                type="text"
-                                placeholder="Juan Dela Cruz"
-                                className="w-full px-4 py-3 rounded-xl border border-outline bg-white text-sm text-asphalt focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
-                              />
-                            </div>
-                            
-                            <div>
-                              <label className="block text-[10px] font-bold text-asphalt mb-1.5 uppercase tracking-widest">
-                                Card Number
-                              </label>
-                              <div className="relative">
-                                <input
-                                  type="text"
-                                  placeholder="0000 0000 0000 0000"
-                                  maxLength={19}
-                                  className="w-full pl-11 pr-4 py-3 rounded-xl border border-outline bg-white text-sm text-asphalt focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all tracking-widest"
-                                />
-                                <CreditCard size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant" />
-                              </div>
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-3">
                               <div>
-                                <label className="block text-[10px] font-bold text-asphalt mb-1.5 uppercase tracking-widest">
-                                  Expiry Date
-                                </label>
-                                <input
-                                  type="text"
-                                  placeholder="MM/YY"
-                                  maxLength={5}
-                                  className="w-full px-4 py-3 rounded-xl border border-outline bg-white text-sm text-asphalt focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all text-center tracking-widest"
-                                />
+                                <label className="text-xs font-bold text-asphalt uppercase tracking-widest mb-1.5 block">Card Number</label>
+                                <input type="text" placeholder="0000 0000 0000 0000" className="w-full bg-white border border-outline rounded-lg px-3 py-2 text-sm font-semibold text-asphalt focus:outline-none focus:border-asphalt transition-colors" />
                               </div>
-                              <div>
-                                <label className="block text-[10px] font-bold text-asphalt mb-1.5 uppercase tracking-widest">
-                                  CVC
-                                </label>
-                                <input
-                                  type="text"
-                                  placeholder="123"
-                                  maxLength={4}
-                                  className="w-full px-4 py-3 rounded-xl border border-outline bg-white text-sm text-asphalt focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all text-center tracking-widest"
-                                />
+                              <div className="flex gap-3">
+                                <div className="flex-1">
+                                  <label className="text-xs font-bold text-asphalt uppercase tracking-widest mb-1.5 block">Expiry</label>
+                                  <input type="text" placeholder="MM/YY" className="w-full bg-white border border-outline rounded-lg px-3 py-2 text-sm font-semibold text-asphalt focus:outline-none focus:border-asphalt transition-colors" />
+                                </div>
+                                <div className="flex-1">
+                                  <label className="text-xs font-bold text-asphalt uppercase tracking-widest mb-1.5 block">CVC</label>
+                                  <input type="text" placeholder="123" className="w-full bg-white border border-outline rounded-lg px-3 py-2 text-sm font-semibold text-asphalt focus:outline-none focus:border-asphalt transition-colors" />
+                                </div>
                               </div>
                             </div>
                           </div>
