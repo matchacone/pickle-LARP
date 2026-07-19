@@ -34,7 +34,13 @@ export default function MyCourtPage() {
     { day: 'Sunday', isOpen: false, open: '06:00', close: '22:00' },
   ])
 
-  const [closedDates, setClosedDates] = useState<number[]>([15, 22])
+  const [closedDates, setClosedDates] = useState<string[]>([])
+  const [selectedAmenities, setSelectedAmenities] = useState<string[]>([])
+  const [currentMonth, setCurrentMonth] = useState<Date>(() => {
+    const d = new Date()
+    d.setDate(1)
+    return d
+  })
 
   useEffect(() => {
     async function fetchCourt() {
@@ -49,7 +55,27 @@ export default function MyCourtPage() {
           setCourtType(data.court.courtType || 'indoor')
           setStatus(data.court.status || 'active')
           setPricePerHour(data.court.pricePerHour || '400.00')
-          // If operating hours existed, we would set them here
+          // Set closed dates
+          if (data.closedDates) {
+            setClosedDates(data.closedDates.map((c: any) => c.closedDate))
+          }
+          // Set operating hours
+          if (data.operatingHours && data.operatingHours.length > 0) {
+            const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+            const newSchedule = data.operatingHours.map((oh: any) => ({
+              day: dayNames[oh.dayOfWeek],
+              isOpen: oh.isOpen,
+              open: oh.openTime ? oh.openTime.slice(0, 5) : '06:00',
+              close: oh.closeTime ? oh.closeTime.slice(0, 5) : '22:00'
+            }))
+            const sortOrder = { 'Monday': 1, 'Tuesday': 2, 'Wednesday': 3, 'Thursday': 4, 'Friday': 5, 'Saturday': 6, 'Sunday': 7 }
+            newSchedule.sort((a: any, b: any) => sortOrder[a.day as keyof typeof sortOrder] - sortOrder[b.day as keyof typeof sortOrder])
+            setSchedule(newSchedule)
+          }
+          // Set amenities
+          if (data.amenities && Array.isArray(data.amenities)) {
+            setSelectedAmenities(data.amenities)
+          }
         }
       } catch (error) {
         console.error('Failed to load court', error)
@@ -74,7 +100,9 @@ export default function MyCourtPage() {
           location,
           courtType,
           status,
-          pricePerHour
+          pricePerHour,
+          schedule,
+          amenities: selectedAmenities
         })
       })
       if (!res.ok) throw new Error('Failed to save')
@@ -93,13 +121,62 @@ export default function MyCourtPage() {
     setSchedule(newSchedule)
   }
 
-  const toggleDate = (date: number) => {
-    if (closedDates.includes(date)) {
-      setClosedDates(closedDates.filter(d => d !== date))
+  const toggleDate = async (dateStr: string) => {
+    if (!courtData) return;
+    const isClosed = closedDates.includes(dateStr);
+    
+    // Optimistic update
+    if (isClosed) {
+      setClosedDates(closedDates.filter(d => d !== dateStr))
     } else {
-      setClosedDates([...closedDates, date])
+      setClosedDates([...closedDates, dateStr])
+    }
+
+    try {
+      const res = await fetch('/api/owner/my-court/closed-dates', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          courtId: courtData.id,
+          date: dateStr,
+          isClosed: !isClosed
+        })
+      });
+      if (!res.ok) throw new Error('Failed to update closure');
+    } catch (e) {
+      toast.error('Failed to update closed dates');
+      // Revert optimistic update
+      if (isClosed) {
+        setClosedDates([...closedDates, dateStr]);
+      } else {
+        setClosedDates(closedDates.filter(d => d !== dateStr));
+      }
     }
   }
+
+  const nextMonth = () => {
+    const next = new Date(currentMonth);
+    next.setMonth(next.getMonth() + 1);
+    setCurrentMonth(next);
+  }
+  
+  const prevMonth = () => {
+    const prev = new Date(currentMonth);
+    prev.setMonth(prev.getMonth() - 1);
+    setCurrentMonth(prev);
+  }
+
+  const toggleAmenity = (amenity: string) => {
+    setSelectedAmenities(prev => 
+      prev.includes(amenity)
+        ? prev.filter(a => a !== amenity)
+        : [...prev, amenity]
+    )
+  }
+
+  // Calculate days in month and starting offset
+  const daysInMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0).getDate();
+  const startDay = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1).getDay();
 
   if (loading) {
     return (
@@ -231,12 +308,20 @@ export default function MyCourtPage() {
             </p>
             
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-              {['Paddles Included', 'Pickleballs', 'Water Dispenser', 'Locker Room', 'Shower', 'Parking'].map((item) => (
-                <label key={item} className="flex items-center gap-3 p-3 border border-outline rounded-lg cursor-pointer hover:bg-mist transition-colors">
-                  <input type="checkbox" className="w-5 h-5 accent-asphalt rounded" defaultChecked={['Paddles Included', 'Pickleballs', 'Parking'].includes(item)} />
-                  <span className="text-sm font-semibold">{item}</span>
-                </label>
-              ))}
+              {['Paddles Included', 'Pickleballs', 'Water Dispenser', 'Locker Room', 'Shower', 'Parking'].map((item) => {
+                const isSelected = selectedAmenities.includes(item);
+                return (
+                  <label key={item} className={`flex items-center gap-3 p-3 border rounded-lg cursor-pointer transition-colors ${isSelected ? 'bg-primary/10 border-primary text-asphalt' : 'border-outline hover:bg-mist text-asphalt/80'}`}>
+                    <input 
+                      type="checkbox" 
+                      className="w-5 h-5 accent-asphalt rounded" 
+                      checked={isSelected}
+                      onChange={() => toggleAmenity(item)} 
+                    />
+                    <span className="text-sm font-semibold">{item}</span>
+                  </label>
+                )
+              })}
             </div>
           </section>
 
@@ -309,9 +394,11 @@ export default function MyCourtPage() {
             
             <div className="border border-outline rounded-lg p-4 bg-surface-low select-none shadow-inner">
               <div className="flex justify-between items-center mb-4">
-                <button className="p-1.5 hover:bg-mist rounded transition-colors text-asphalt font-bold">&lt;</button>
-                <span className="font-extrabold text-sm tracking-wide text-asphalt">OCTOBER 2026</span>
-                <button className="p-1.5 hover:bg-mist rounded transition-colors text-asphalt font-bold">&gt;</button>
+                <button onClick={prevMonth} className="p-1.5 hover:bg-mist rounded transition-colors text-asphalt font-bold">&lt;</button>
+                <span className="font-extrabold text-sm tracking-wide text-asphalt uppercase">
+                  {currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                </span>
+                <button onClick={nextMonth} className="p-1.5 hover:bg-mist rounded transition-colors text-asphalt font-bold">&gt;</button>
               </div>
               <div className="grid grid-cols-7 gap-1 text-center mb-2">
                 {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map(d => (
@@ -319,17 +406,24 @@ export default function MyCourtPage() {
                 ))}
               </div>
               <div className="grid grid-cols-7 gap-1">
-                {/* Empty slots for starting day of month (Thursday) */}
-                <div className="p-2"></div>
-                <div className="p-2"></div>
-                <div className="p-2"></div>
-                <div className="p-2"></div>
-                {Array.from({ length: 31 }, (_, i) => i + 1).map(date => {
-                  const isClosed = closedDates.includes(date);
+                {Array.from({ length: startDay }).map((_, i) => (
+                  <div key={`empty-${i}`} className="p-2"></div>
+                ))}
+                {Array.from({ length: daysInMonth }, (_, i) => {
+                  const date = i + 1;
+                  // Localize date to YYYY-MM-DD
+                  const d = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), date);
+                  const dateStr = [
+                    d.getFullYear(),
+                    String(d.getMonth() + 1).padStart(2, '0'),
+                    String(d.getDate()).padStart(2, '0')
+                  ].join('-');
+                  const isClosed = closedDates.includes(dateStr);
+                  
                   return (
                     <button 
                       key={date}
-                      onClick={() => toggleDate(date)}
+                      onClick={() => toggleDate(dateStr)}
                       className={`relative aspect-square flex items-center justify-center text-sm rounded-md transition-all font-semibold overflow-hidden
                         ${isClosed ? 'bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400 border-red-200 dark:border-red-900/50 opacity-80' : 'bg-surface hover:bg-mist border border-transparent shadow-sm'}
                       `}

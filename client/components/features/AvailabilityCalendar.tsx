@@ -3,20 +3,16 @@
 import { useState, useMemo, useEffect, useCallback } from 'react'
 import { Calendar as CalendarIcon, Clock, ArrowRight, Loader2 } from 'lucide-react'
 
-// Basic 14-hour slot array (8 AM to 9 PM)
-const TIME_SLOTS = Array.from({ length: 14 }).map((_, i) => {
-  const hour = i + 8
-  const isPM = hour >= 12
-  const displayHour = hour > 12 ? hour - 12 : hour
-  return {
-    id: `${hour}:00`,
-    label: `${displayHour}:00 ${isPM ? 'PM' : 'AM'}`,
-    hour,
-  }
-})
+// TIME_SLOTS is now computed dynamically based on operating hours
 
 /** Shape of a booked slot from the availability API */
 type BookedSlot = { start_hour: number; end_hour: number }
+
+type OperatingHours = {
+  is_open: boolean
+  open_time: string
+  close_time: string
+}
 
 interface Props {
   courtId: string
@@ -39,6 +35,7 @@ export default function AvailabilityCalendar({
   const [selectedSlot, setSelectedSlot] = useState<number | null>(null)
   const [duration, setDuration] = useState<number>(1)
   const [bookedSlots, setBookedSlots] = useState<BookedSlot[]>([])
+  const [operatingHours, setOperatingHours] = useState<OperatingHours | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
   // Generate next 7 days for the date picker
@@ -70,12 +67,15 @@ export default function AvailabilityCalendar({
       if (res.ok) {
         const data = await res.json()
         setBookedSlots(data.booked_slots ?? [])
+        setOperatingHours(data.operating_hours ?? null)
       } else {
         // On error, treat all slots as available (graceful degradation)
         setBookedSlots([])
+        setOperatingHours(null)
       }
     } catch {
       setBookedSlots([])
+      setOperatingHours(null)
     } finally {
       setIsLoading(false)
     }
@@ -84,6 +84,25 @@ export default function AvailabilityCalendar({
   useEffect(() => {
     Promise.resolve().then(() => fetchAvailability())
   }, [fetchAvailability])
+
+  const timeSlots = useMemo(() => {
+    if (!operatingHours || !operatingHours.is_open) return []
+    const startHour = parseInt(operatingHours.open_time.split(':')[0], 10)
+    const endHour = parseInt(operatingHours.close_time.split(':')[0], 10)
+    if (isNaN(startHour) || isNaN(endHour) || startHour >= endHour) return []
+    
+    const length = endHour - startHour
+    return Array.from({ length }).map((_, i) => {
+      const hour = i + startHour
+      const isPM = hour >= 12
+      const displayHour = hour > 12 ? hour - 12 : hour === 0 ? 12 : hour
+      return {
+        id: `${hour}:00`,
+        label: `${displayHour}:00 ${isPM ? 'PM' : 'AM'}`,
+        hour,
+      }
+    })
+  }, [operatingHours])
 
   // Check if a specific hour on the selected date is available
   const isSlotAvailable = (hour: number) => {
@@ -110,9 +129,10 @@ export default function AvailabilityCalendar({
   // Check if current duration is valid (subsequent slots are available)
   const isDurationValid = () => {
     if (selectedSlot === null) return false
+    const maxHour = operatingHours ? parseInt(operatingHours.close_time.split(':')[0], 10) : 22
     for (let i = 0; i < duration; i++) {
       const hourToCheck = selectedSlot + i
-      if (hourToCheck > 21) return false // Past 9 PM (last slot)
+      if (hourToCheck >= maxHour) return false // Past close time
       if (!isSlotAvailable(hourToCheck)) return false
     }
     return true
@@ -179,10 +199,14 @@ export default function AvailabilityCalendar({
             <Loader2 size={20} className="animate-spin mr-2" />
             <span className="text-sm font-semibold">Loading availability…</span>
           </div>
+        ) : timeSlots.length === 0 ? (
+          <div className="flex items-center justify-center py-12 text-on-surface-variant">
+            <span className="text-sm font-semibold">Court is closed on this day.</span>
+          </div>
         ) : (
           /* Time slot grid */
           <div className="grid grid-cols-3 gap-2">
-            {TIME_SLOTS.map((slot) => {
+            {timeSlots.map((slot) => {
               const available = isSlotAvailable(slot.hour)
               const isSelected = selectedSlot === slot.hour
               
@@ -236,7 +260,7 @@ export default function AvailabilityCalendar({
               </span>
               <button
                 onClick={() => setDuration(Math.min(maxBookingHours, duration + 1))}
-                disabled={duration >= maxBookingHours || (selectedSlot ? selectedSlot + duration >= 22 : false)}
+                disabled={duration >= maxBookingHours || (selectedSlot ? selectedSlot + duration >= (operatingHours ? parseInt(operatingHours.close_time.split(':')[0], 10) : 22) : false)}
                 className="w-8 h-8 flex items-center justify-center rounded-md bg-white border border-outline-variant text-asphalt font-bold hover:bg-surface disabled:opacity-50 disabled:hover:bg-white"
               >
                 +

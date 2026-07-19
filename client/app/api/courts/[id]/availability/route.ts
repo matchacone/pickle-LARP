@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getBookedSlots } from '@/lib/db/queries/bookingQueries'
+import { db } from '@/lib/db'
+import { courtOperatingHours } from '@/lib/db/schema'
+import { eq, and } from 'drizzle-orm'
 
 // ─── GET /api/courts/[id]/availability?date=YYYY-MM-DD — Public ──────────────
 export async function GET(
@@ -30,6 +33,17 @@ export async function GET(
   try {
     const bookedSlots = await getBookedSlots(courtId, date)
 
+    const dayOfWeek = parsed.getDay()
+    const [operatingHour] = await db
+      .select()
+      .from(courtOperatingHours)
+      .where(
+        and(
+          eq(courtOperatingHours.courtId, courtId),
+          eq(courtOperatingHours.dayOfWeek, dayOfWeek)
+        )
+      )
+
     return NextResponse.json({
       court_id: courtId,
       date,
@@ -37,6 +51,15 @@ export async function GET(
         start_hour: s.startHour,
         end_hour: s.endHour,
       })),
+      operating_hours: operatingHour ? {
+        is_open: operatingHour.isOpen,
+        open_time: operatingHour.openTime,
+        close_time: operatingHour.closeTime,
+      } : {
+        is_open: true,
+        open_time: '08:00',
+        close_time: '22:00'
+      }
     })
   } catch (error) {
     console.error('[GET /api/courts/[id]/availability]', error)

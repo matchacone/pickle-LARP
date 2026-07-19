@@ -6,7 +6,7 @@
  */
 
 import { db } from '@/lib/db'
-import { booking, invoice, court, profiles } from '@/lib/db/schema'
+import { booking, invoice, court, profiles, courtClosedDates } from '@/lib/db/schema'
 import { eq, and, or, sql, desc, gte, lte, ne, lt, gt } from 'drizzle-orm'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -80,6 +80,22 @@ export async function getBookedSlots(
   courtId: string,
   date: string,
 ): Promise<BookedSlot[]> {
+  // Check if court is explicitly closed on this date
+  const [closedDateRow] = await db
+    .select({ id: courtClosedDates.id })
+    .from(courtClosedDates)
+    .where(
+      and(
+        eq(courtClosedDates.courtId, courtId),
+        eq(courtClosedDates.closedDate, date)
+      )
+    )
+
+  if (closedDateRow) {
+    // If court is closed, block all slots (0 to 24)
+    return [{ startHour: 0, endHour: 24 }]
+  }
+
   // Build the day boundaries in Manila time → UTC
   // The date string represents a Manila date, so 00:00 Manila = 16:00 UTC (prev day)
   const dayStartManila = new Date(`${date}T00:00:00+08:00`)
