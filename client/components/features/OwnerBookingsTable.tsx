@@ -1,15 +1,39 @@
-import { CheckCircle2, Search, Filter, XCircle } from 'lucide-react'
+'use client'
 
-const HISTORICAL_BOOKINGS = [
-  { id: '101', date: 'Oct 12, 2026', time: '14:00 - 15:00', court: 'Court 1 - Indoor', user: 'johndoe', status: 'completed', amount: '₱500' },
-  { id: '102', date: 'Oct 12, 2026', time: '15:00 - 17:00', court: 'Court 3 - Outdoor', user: 'janem', status: 'completed', amount: '₱800' },
-  { id: '103', date: 'Oct 11, 2026', time: '09:00 - 10:00', court: 'Court 2 - Indoor', user: 'alexb', status: 'cancelled', amount: '₱0' },
-  { id: '104', date: 'Oct 10, 2026', time: '18:00 - 20:00', court: 'Court 4 - Outdoor', user: 'sarahs', status: 'completed', amount: '₱1,000' },
-  { id: '105', date: 'Oct 09, 2026', time: '16:00 - 18:00', court: 'Court 1 - Indoor', user: 'mikep', status: 'completed', amount: '₱1,000' },
-  { id: '106', date: 'Oct 08, 2026', time: '07:00 - 09:00', court: 'Court 2 - Indoor', user: 'chrisw', status: 'completed', amount: '₱1,000' },
-]
+import { useState, useEffect } from 'react'
+import { CheckCircle2, Search, Filter, XCircle, Loader2, Clock } from 'lucide-react'
+
+type Booking = {
+  id: string
+  date: string
+  time: string
+  court: string
+  user: string
+  status: string
+  amount: string
+}
 
 export function OwnerBookingsTable() {
+  const [bookings, setBookings] = useState<Booking[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    async function fetchBookings() {
+      try {
+        const res = await fetch('/api/owner/bookings')
+        const data = await res.json()
+        if (data.bookings) {
+          setBookings(data.bookings)
+        }
+      } catch (err) {
+        console.error('Failed to fetch bookings', err)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchBookings()
+  }, [])
+
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
@@ -48,52 +72,66 @@ export function OwnerBookingsTable() {
         </div>
 
         {/* Data Table */}
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm whitespace-nowrap">
-            <thead className="bg-mist/50 text-on-surface-variant text-xs uppercase tracking-wider border-b border-outline">
-              <tr>
-                <th className="px-6 py-4 font-semibold">Date & Time</th>
-                <th className="px-6 py-4 font-semibold">Court</th>
-                <th className="px-6 py-4 font-semibold">Player</th>
-                <th className="px-6 py-4 font-semibold">Status</th>
-                <th className="px-6 py-4 font-semibold">Amount</th>
-                <th className="px-6 py-4 font-semibold text-right">Receipt</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-outline">
-              {HISTORICAL_BOOKINGS.map((booking) => (
-                <tr key={booking.id} className="hover:bg-mist/30 transition-colors group">
-                  <td className="px-6 py-4">
-                    <div className="font-semibold text-asphalt">{booking.date}</div>
-                    <div className="text-xs text-on-surface-variant">{booking.time}</div>
-                  </td>
-                  <td className="px-6 py-4 text-asphalt font-medium">{booking.court}</td>
-                  <td className="px-6 py-4 text-asphalt font-medium">@{booking.user}</td>
-                  <td className="px-6 py-4">
-                    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${
-                      booking.status === 'completed' 
-                        ? 'bg-green-100 text-green-700' 
-                        : 'bg-red-100 text-red-700'
-                    }`}>
-                      {booking.status === 'completed' ? <CheckCircle2 size={12} /> : <XCircle size={12} />}
-                      {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 font-bold text-asphalt">{booking.amount}</td>
-                  <td className="px-6 py-4 text-right">
-                    <button className="text-primary font-semibold hover:text-asphalt transition-colors opacity-0 group-hover:opacity-100">
-                      View
-                    </button>
-                  </td>
+        <div className="overflow-x-auto min-h-[300px] relative">
+          {loading ? (
+            <div className="absolute inset-0 flex items-center justify-center bg-surface/50 z-10">
+              <Loader2 className="w-8 h-8 animate-spin text-primary" />
+            </div>
+          ) : (
+            <table className="w-full text-left text-sm whitespace-nowrap">
+              <thead className="bg-mist/50 text-on-surface-variant text-xs uppercase tracking-wider border-b border-outline">
+                <tr>
+                  <th className="px-6 py-4 font-semibold">Date & Time</th>
+                  <th className="px-6 py-4 font-semibold">Court</th>
+                  <th className="px-6 py-4 font-semibold">Player</th>
+                  <th className="px-6 py-4 font-semibold">Status</th>
+                  <th className="px-6 py-4 font-semibold">Amount</th>
+                  <th className="px-6 py-4 font-semibold text-right">Receipt</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-outline">
+                {bookings.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} className="px-6 py-8 text-center text-on-surface-variant">
+                      No bookings found.
+                    </td>
+                  </tr>
+                ) : bookings.map((booking) => (
+                  <tr key={booking.id} className="hover:bg-mist/30 transition-colors group">
+                    <td className="px-6 py-4">
+                      <div className="font-semibold text-asphalt">{booking.date}</div>
+                      <div className="text-xs text-on-surface-variant">{booking.time}</div>
+                    </td>
+                    <td className="px-6 py-4 text-asphalt font-medium">{booking.court}</td>
+                    <td className="px-6 py-4 text-asphalt font-medium">@{booking.user}</td>
+                    <td className="px-6 py-4">
+                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${
+                        booking.status === 'completed' 
+                          ? 'bg-green-100 text-green-700' 
+                          : booking.status === 'pending'
+                          ? 'bg-yellow-100 text-yellow-700'
+                          : 'bg-red-100 text-red-700'
+                      }`}>
+                        {booking.status === 'completed' ? <CheckCircle2 size={12} /> : booking.status === 'pending' ? <Clock size={12} /> : <XCircle size={12} />}
+                        {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 font-bold text-asphalt">{booking.amount}</td>
+                    <td className="px-6 py-4 text-right">
+                      <button className="text-primary font-semibold hover:text-asphalt transition-colors opacity-0 group-hover:opacity-100">
+                        View
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
         </div>
         
         {/* Pagination Footer */}
         <div className="p-4 border-t border-outline flex items-center justify-between text-sm text-on-surface-variant bg-mist/10">
-          <span>Showing 1 to 6 of 6 entries</span>
+          <span>Showing 1 to {bookings.length} of {bookings.length} entries</span>
           <div className="flex gap-1">
             <button className="px-3 py-1 border border-outline rounded-md hover:bg-mist disabled:opacity-50" disabled>Prev</button>
             <button className="px-3 py-1 border border-outline rounded-md bg-surface font-bold text-asphalt">1</button>

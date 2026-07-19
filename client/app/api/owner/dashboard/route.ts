@@ -4,7 +4,7 @@ import { profiles, court, booking, invoice } from '@/lib/db/schema'
 import { eq, and, gte, lt, inArray } from 'drizzle-orm'
 
 export async function GET(req: Request) {
-  const supabase = createServerClient()
+  const supabase = await createServerClient()
   const { data: { user } } = await supabase.auth.getUser()
 
   if (!user) {

@@ -1,7 +1,8 @@
 'use client'
 
-import { useState } from 'react'
-import { Save, Image as ImageIcon, MapPin, DollarSign, Info, List, Clock, Calendar as CalendarIcon } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Save, Image as ImageIcon, MapPin, DollarSign, Info, List, Clock, Calendar as CalendarIcon, Loader2 } from 'lucide-react'
+import { toast } from 'react-hot-toast'
 
 const HOURS = Array.from({ length: 24 }, (_, i) => {
   const ampm = i >= 12 ? 'PM' : 'AM'
@@ -11,6 +12,18 @@ const HOURS = Array.from({ length: 24 }, (_, i) => {
 })
 
 export default function MyCourtPage() {
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [courtData, setCourtData] = useState<any>(null)
+  
+  // Form State
+  const [courtName, setCourtName] = useState('')
+  const [description, setDescription] = useState('')
+  const [location, setLocation] = useState('')
+  const [courtType, setCourtType] = useState('indoor')
+  const [status, setStatus] = useState('active')
+  const [pricePerHour, setPricePerHour] = useState('400.00')
+
   const [schedule, setSchedule] = useState([
     { day: 'Monday', isOpen: true, open: '06:00', close: '22:00' },
     { day: 'Tuesday', isOpen: true, open: '06:00', close: '22:00' },
@@ -21,13 +34,64 @@ export default function MyCourtPage() {
     { day: 'Sunday', isOpen: false, open: '06:00', close: '22:00' },
   ])
 
+  const [closedDates, setClosedDates] = useState<number[]>([15, 22])
+
+  useEffect(() => {
+    async function fetchCourt() {
+      try {
+        const res = await fetch('/api/owner/my-court')
+        const data = await res.json()
+        if (data.court) {
+          setCourtData(data.court)
+          setCourtName(data.court.courtName || '')
+          setDescription(data.court.description || '')
+          setLocation(data.court.location || '')
+          setCourtType(data.court.courtType || 'indoor')
+          setStatus(data.court.status || 'active')
+          setPricePerHour(data.court.pricePerHour || '400.00')
+          // If operating hours existed, we would set them here
+        }
+      } catch (error) {
+        console.error('Failed to load court', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchCourt()
+  }, [])
+
+  const handleSave = async () => {
+    if (!courtData) return
+    setSaving(true)
+    try {
+      const res = await fetch('/api/owner/my-court', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: courtData.id,
+          courtName,
+          description,
+          location,
+          courtType,
+          status,
+          pricePerHour
+        })
+      })
+      if (!res.ok) throw new Error('Failed to save')
+      toast.success('Court settings saved!')
+    } catch (e) {
+      toast.error('Failed to save settings')
+      console.error(e)
+    } finally {
+      setSaving(false)
+    }
+  }
+
   const toggleDay = (index: number) => {
     const newSchedule = [...schedule]
     newSchedule[index].isOpen = !newSchedule[index].isOpen
     setSchedule(newSchedule)
   }
-
-  const [closedDates, setClosedDates] = useState<number[]>([15, 22])
 
   const toggleDate = (date: number) => {
     if (closedDates.includes(date)) {
@@ -35,6 +99,23 @@ export default function MyCourtPage() {
     } else {
       setClosedDates([...closedDates, date])
     }
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-[50vh] flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-pickle-500" />
+      </div>
+    )
+  }
+
+  if (!courtData) {
+    return (
+      <div className="max-w-4xl mx-auto py-20 text-center">
+        <h2 className="text-2xl font-bold text-asphalt mb-2">No Court Found</h2>
+        <p className="text-on-surface-variant">You haven't set up a court yet. Please contact support.</p>
+      </div>
+    )
   }
 
   return (
@@ -54,9 +135,9 @@ export default function MyCourtPage() {
           <button className="btn btn-outline bg-surface">
             Discard Changes
           </button>
-          <button className="btn btn-cta shadow-float">
-            <Save size={18} />
-            Save Changes
+          <button onClick={handleSave} disabled={saving} className="btn btn-cta shadow-float">
+            {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save size={18} />}
+            {saving ? 'Saving...' : 'Save Changes'}
           </button>
         </div>
       </div>
@@ -78,7 +159,8 @@ export default function MyCourtPage() {
                 <input 
                   id="courtName"
                   className="input" 
-                  defaultValue="Downtown Pickleball Oasis" 
+                  value={courtName}
+                  onChange={e => setCourtName(e.target.value)}
                   placeholder="e.g., Sunset Park Court 1" 
                 />
               </div>
@@ -90,7 +172,8 @@ export default function MyCourtPage() {
                 <textarea 
                   id="description"
                   className="input min-h-[120px] resize-y" 
-                  defaultValue="Premium indoor court located in the heart of downtown. Features professional surfacing, excellent lighting, and climate control."
+                  value={description}
+                  onChange={e => setDescription(e.target.value)}
                   placeholder="Describe the court, rules, and vibe..."
                 />
               </div>
@@ -106,7 +189,8 @@ export default function MyCourtPage() {
                   <input 
                     id="location"
                     className="input pl-10" 
-                    defaultValue="123 Main St, Metro Manila" 
+                    value={location}
+                    onChange={e => setLocation(e.target.value)}
                     placeholder="Full address of the facility" 
                   />
                 </div>
@@ -117,7 +201,7 @@ export default function MyCourtPage() {
                   <label className="block text-sm font-bold mb-1.5" htmlFor="courtType">
                     Court Type
                   </label>
-                  <select id="courtType" className="input bg-surface" defaultValue="indoor">
+                  <select id="courtType" className="input bg-surface" value={courtType} onChange={e => setCourtType(e.target.value)}>
                     <option value="indoor">Indoor</option>
                     <option value="outdoor">Outdoor</option>
                   </select>
@@ -126,7 +210,7 @@ export default function MyCourtPage() {
                   <label className="block text-sm font-bold mb-1.5" htmlFor="status">
                     Status
                   </label>
-                  <select id="status" className="input bg-surface" defaultValue="active">
+                  <select id="status" className="input bg-surface" value={status} onChange={e => setStatus(e.target.value)}>
                     <option value="active">Active (Bookable)</option>
                     <option value="maintenance">Under Maintenance</option>
                     <option value="hidden">Hidden</option>
@@ -283,7 +367,8 @@ export default function MyCourtPage() {
                   id="pricePerHour"
                   type="number"
                   className="input pl-8 text-lg font-bold" 
-                  defaultValue="400.00" 
+                  value={pricePerHour}
+                  onChange={e => setPricePerHour(e.target.value)}
                 />
               </div>
               <p className="text-xs text-on-surface-variant mt-2">

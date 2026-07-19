@@ -21,11 +21,14 @@ export const metadata: Metadata = {
   },
 }
 
+import { Toaster } from 'react-hot-toast'
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={`${jakarta.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col bg-surface text-on-surface">
         {children}
+        <Toaster position="bottom-right" />
       </body>
     </html>
   )
