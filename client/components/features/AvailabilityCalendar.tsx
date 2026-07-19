@@ -32,6 +32,7 @@ export default function AvailabilityCalendar({
   // State
   const [selectedDate, setSelectedDate] = useState<Date>(() => {
     const d = new Date()
+    d.setDate(d.getDate() + 1) // Start from tomorrow
     d.setHours(0, 0, 0, 0)
     return d
   })
@@ -46,7 +47,8 @@ export default function AvailabilityCalendar({
     const today = new Date()
     today.setHours(0, 0, 0, 0)
     
-    for (let i = 0; i < 7; i++) {
+    // Start from i = 1 (tomorrow) up to 7 days
+    for (let i = 1; i <= 7; i++) {
       const date = new Date(today)
       date.setDate(today.getDate() + i)
       days.push({

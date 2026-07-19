@@ -190,6 +190,60 @@ function MockPaymentContent() {
               </div>
             </div>
 
+            {/* Credit Card Fields (Mock) */}
+            <div className="mb-8 space-y-4 text-left">
+              <div>
+                <label className="block text-xs font-bold text-asphalt mb-1.5 uppercase tracking-widest">
+                  Name on Card
+                </label>
+                <input
+                  type="text"
+                  placeholder="Juan Dela Cruz"
+                  className="w-full px-4 py-3 rounded-xl border border-outline bg-white text-sm text-asphalt focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-xs font-bold text-asphalt mb-1.5 uppercase tracking-widest">
+                  Card Number
+                </label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    placeholder="0000 0000 0000 0000"
+                    maxLength={19}
+                    className="w-full pl-11 pr-4 py-3 rounded-xl border border-outline bg-white text-sm text-asphalt focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all tracking-widest"
+                  />
+                  <CreditCard size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant" />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-asphalt mb-1.5 uppercase tracking-widest">
+                    Expiry Date
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="MM/YY"
+                    maxLength={5}
+                    className="w-full px-4 py-3 rounded-xl border border-outline bg-white text-sm text-asphalt focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all text-center tracking-widest"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-asphalt mb-1.5 uppercase tracking-widest">
+                    CVC
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="123"
+                    maxLength={4}
+                    className="w-full px-4 py-3 rounded-xl border border-outline bg-white text-sm text-asphalt focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all text-center tracking-widest"
+                  />
+                </div>
+              </div>
+            </div>
+
             {/* Error */}
             {error && (
               <div className="p-3 mb-6 bg-error/10 border border-error/20 rounded-lg text-sm font-semibold text-error flex items-center gap-2">

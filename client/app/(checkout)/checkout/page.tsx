@@ -562,42 +562,99 @@ function CheckoutContent() {
                     const isSelected = paymentMethod === method.id
                     const Icon = method.icon
                     return (
-                      <button
-                        key={method.id}
-                        type="button"
-                        onClick={() => setPaymentMethod(method.id)}
-                        disabled={isSubmitting}
-                        className={`
-                          flex items-center gap-4 p-4 rounded-xl border-2 text-left transition-all
-                          ${isSelected
-                            ? 'border-asphalt bg-asphalt/[0.03] ring-1 ring-asphalt/10'
-                            : 'border-outline hover:border-outline-strong hover:bg-mist/50'
-                          }
-                          disabled:opacity-50 disabled:cursor-not-allowed
-                        `}
-                      >
-                        <div
-                          className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 transition-colors ${
-                            isSelected ? 'bg-asphalt text-white' : 'bg-mist text-on-surface-variant'
-                          }`}
+                      <div key={method.id} className="flex flex-col gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setPaymentMethod(method.id)}
+                          disabled={isSubmitting}
+                          className={`
+                            flex items-center gap-4 p-4 rounded-xl border-2 text-left transition-all
+                            ${isSelected
+                              ? 'border-asphalt bg-asphalt/[0.03] ring-1 ring-asphalt/10'
+                              : 'border-outline hover:border-outline-strong hover:bg-mist/50'
+                            }
+                            disabled:opacity-50 disabled:cursor-not-allowed
+                          `}
                         >
-                          <Icon size={18} />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-bold text-asphalt">{method.label}</p>
-                          <p className="text-xs text-on-surface-variant">{method.description}</p>
-                        </div>
-                        {/* Radio indicator */}
-                        <div
-                          className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all ${
-                            isSelected ? 'border-asphalt' : 'border-outline-strong'
-                          }`}
-                        >
-                          {isSelected && (
-                            <div className="w-2.5 h-2.5 rounded-full bg-asphalt" />
-                          )}
-                        </div>
-                      </button>
+                          <div
+                            className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 transition-colors ${
+                              isSelected ? 'bg-asphalt text-white' : 'bg-mist text-on-surface-variant'
+                            }`}
+                          >
+                            <Icon size={18} />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-bold text-asphalt">{method.label}</p>
+                            <p className="text-xs text-on-surface-variant">{method.description}</p>
+                          </div>
+                          {/* Radio indicator */}
+                          <div
+                            className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all ${
+                              isSelected ? 'border-asphalt' : 'border-outline-strong'
+                            }`}
+                          >
+                            {isSelected && (
+                              <div className="w-2.5 h-2.5 rounded-full bg-asphalt" />
+                            )}
+                          </div>
+                        </button>
+
+                        {/* Credit Card Fields - Only show if selected and is Credit Card */}
+                        {isSelected && method.id === 'Credit Card' && (
+                          <div className="p-4 border-2 border-outline-strong rounded-xl bg-surface-low space-y-4 animate-fade-in text-left">
+                            <div>
+                              <label className="block text-[10px] font-bold text-asphalt mb-1.5 uppercase tracking-widest">
+                                Name on Card
+                              </label>
+                              <input
+                                type="text"
+                                placeholder="Juan Dela Cruz"
+                                className="w-full px-4 py-3 rounded-xl border border-outline bg-white text-sm text-asphalt focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                              />
+                            </div>
+                            
+                            <div>
+                              <label className="block text-[10px] font-bold text-asphalt mb-1.5 uppercase tracking-widest">
+                                Card Number
+                              </label>
+                              <div className="relative">
+                                <input
+                                  type="text"
+                                  placeholder="0000 0000 0000 0000"
+                                  maxLength={19}
+                                  className="w-full pl-11 pr-4 py-3 rounded-xl border border-outline bg-white text-sm text-asphalt focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all tracking-widest"
+                                />
+                                <CreditCard size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant" />
+                              </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                              <div>
+                                <label className="block text-[10px] font-bold text-asphalt mb-1.5 uppercase tracking-widest">
+                                  Expiry Date
+                                </label>
+                                <input
+                                  type="text"
+                                  placeholder="MM/YY"
+                                  maxLength={5}
+                                  className="w-full px-4 py-3 rounded-xl border border-outline bg-white text-sm text-asphalt focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all text-center tracking-widest"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-[10px] font-bold text-asphalt mb-1.5 uppercase tracking-widest">
+                                  CVC
+                                </label>
+                                <input
+                                  type="text"
+                                  placeholder="123"
+                                  maxLength={4}
+                                  className="w-full px-4 py-3 rounded-xl border border-outline bg-white text-sm text-asphalt focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all text-center tracking-widest"
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
                     )
                   })}
                 </div>
