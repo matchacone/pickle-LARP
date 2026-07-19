@@ -1,19 +1,14 @@
 /**
  * Database seed script for Pickle All.
  *
- * Inserts sample courts, items, court-item links, reviews,
- * bookings, and invoices to mimic a realistic production database.
- *
  * Usage:
  *   npx tsx --env-file=.env lib/db/seed.ts
- *
- * Optional:
- *   OWNER_ID="your-supabase-user-uuid" (Links courts to your account so you can see them in the Owner Dashboard)
  */
 
 import { drizzle } from 'drizzle-orm/postgres-js'
 import postgres from 'postgres'
 import { sql, inArray } from 'drizzle-orm'
+import { createClient } from '@supabase/supabase-js'
 import * as schema from './schema'
 
 // ─── Connection ───────────────────────────────────────────────────────────────
@@ -24,54 +19,76 @@ if (!DATABASE_URL) {
   process.exit(1)
 }
 
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+
+if (!supabaseUrl || !supabaseKey) {
+  console.error('❌ Supabase env vars missing. NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY are required.')
+  process.exit(1)
+}
+
 const client = postgres(DATABASE_URL)
 const db = drizzle(client, { schema })
+const supabase = createClient(supabaseUrl, supabaseKey)
 
 // ─── Seed Data ────────────────────────────────────────────────────────────────
+
+async function getOrCreateUser(email: string, password: string, username: string, role: string) {
+  // First, check if the profile exists
+  const existing = await db.select({
+    id: schema.profiles.id,
+    username: schema.profiles.username,
+    role: schema.profiles.role
+  }).from(schema.profiles).where(sql`username = ${username}`)
+  
+  if (existing.length > 0) {
+    const p = existing[0]
+    await db.update(schema.profiles).set({ role }).where(sql`id = ${p.id}`)
+    return { id: p.id, role, username }
+  }
+
+  // Check if email already exists in auth.users
+  const authUsers = await db.execute(sql`SELECT id FROM auth.users WHERE email = ${email}`)
+  let actualId = (authUsers as any)[0]?.id
+
+  if (!actualId) {
+    const userId = crypto.randomUUID();
+    await db.execute(sql`
+      INSERT INTO auth.users (
+        id, instance_id, aud, role, email, encrypted_password, email_confirmed_at, 
+        raw_app_meta_data, raw_user_meta_data, created_at, updated_at
+      ) VALUES (
+        ${userId}, '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 
+        ${email}, crypt(${password}, gen_salt('bf')), now(), 
+        '{"provider":"email","providers":["email"]}', 
+        ${JSON.stringify({ username })}, now(), now()
+      );
+    `)
+    actualId = userId
+  }
+
+  // Wait a moment for trigger to create the profile
+  await new Promise(r => setTimeout(r, 1500))
+
+  // Ensure role is correct
+  await db.update(schema.profiles).set({ role }).where(sql`id = ${actualId}`)
+  
+  return { id: actualId, role, username }
+}
 
 async function seed() {
   console.log('🌱 Seeding database...\n')
 
-  // ── 1. Fetch Existing Profiles ──────────────────────────────────────────
-  console.log('  → Fetching existing profiles...')
+  // ── 1. Setup Users ──────────────────────────────────────────
+  console.log('  → Setting up Test, Owner, and Admin users...')
+  const testUser = await getOrCreateUser('pickleall.testuser@gmail.com', 'password', 'Test', 'user')
+  const ownerUser = await getOrCreateUser('pickleall.owner@gmail.com', 'password', 'Owner', 'owner')
+  const adminUser = await getOrCreateUser('pickleall.admin@gmail.com', 'password', 'Admin', 'admin')
   
-  const existingProfiles = await db.select({
-    id: schema.profiles.id,
-    username: schema.profiles.username,
-    role: schema.profiles.role
-  }).from(schema.profiles)
-  
-  if (existingProfiles.length === 0) {
-    console.error('    ⚠ No profiles found in the database.')
-    console.error('      Please sign up at least one user via the UI to populate auth.users before running the seeder.')
-    process.exit(1)
-  }
+  console.log(`    ✓ Users ready`)
 
-  let ownerProfile = existingProfiles.find(p => p.role === 'owner')
-
-  if (process.env.OWNER_ID) {
-    ownerProfile = existingProfiles.find(p => p.id === process.env.OWNER_ID)
-    if (ownerProfile && ownerProfile.role !== 'owner') {
-      await db.update(schema.profiles).set({ role: 'owner' }).where(sql`id = ${ownerProfile.id}`)
-      ownerProfile.role = 'owner'
-    } else if (!ownerProfile) {
-      console.warn(`    ⚠ Provided OWNER_ID ${process.env.OWNER_ID} not found in profiles table. Falling back to an existing user.`)
-    }
-  }
-
-  if (!ownerProfile) {
-    // If no explicit owner found, make the first available user an owner
-    ownerProfile = existingProfiles[existingProfiles.length - 1] // picking the most recently created
-    await db.update(schema.profiles).set({ role: 'owner' }).where(sql`id = ${ownerProfile.id}`)
-    ownerProfile.role = 'owner'
-  }
-
-  console.log(`    ✓ Owner selected: ${ownerProfile.username} (${ownerProfile.id})`)
-
-  let userProfiles = existingProfiles.filter(p => p.id !== ownerProfile!.id)
-  if (userProfiles.length === 0) {
-    userProfiles = [ownerProfile!] // fallback if only 1 user exists
-  }
+  const userProfiles = [testUser, ownerUser, adminUser]
+  const ownerProfile = ownerUser
 
   // ── 2. Items (equipment / amenities) ──────────────────────────────────────
   console.log('  → Inserting items...')
@@ -92,16 +109,18 @@ async function seed() {
 
   // ── 3. Courts ─────────────────────────────────────────────────────────────
   console.log('  → Inserting courts...')
+  
+  // Clean up old data to avoid FK errors
+  await db.delete(schema.invoice)
+  await db.delete(schema.booking)
+  await db.delete(schema.reviews)
+  await db.delete(schema.courtOperatingHours)
+  await db.delete(schema.courtItem)
+  await db.delete(schema.court)
+  
   const courtsData = [
-    { courtName: 'BGC Sports Hub — Court A', description: 'Premium indoor facility...', location: 'BGC, Taguig', pricePerHour: '350.00', courtType: 'indoor', amenities: ['Paddle Rental', 'Locker Room', 'Pro Shop'] },
-    { courtName: 'Pickleball Manila — Court 3', description: 'Open-air court with city view.', location: 'Ayala Ave, Makati', pricePerHour: '280.00', courtType: 'outdoor', amenities: ['Ball Rental', 'Water Station'] },
-    { courtName: 'The Paddle Club — VIP Court', description: 'Enclosed, private coaching bays.', location: 'Eastwood, QC', pricePerHour: '420.00', courtType: 'indoor', amenities: ['Paddle Rental', 'Café', 'Coaching', 'Scoreboard'] },
-    { courtName: 'Eastside Courts — Court 2', description: 'Community outdoor courts.', location: 'Kapitolyo, Pasig', pricePerHour: '250.00', courtType: 'outdoor', amenities: ['Ball Rental', 'Parking'] },
-    { courtName: 'Smash & Rally Hub', description: 'Mid-tier indoor facility.', location: 'Mandaluyong City', pricePerHour: '380.00', courtType: 'indoor', amenities: ['Paddle Rental', 'Locker Room'] },
+    { courtName: 'Owner Seeder Court', description: 'A test court linked to the owner account.', location: 'Test Location', pricePerHour: '150.00', courtType: 'indoor', amenities: ['Paddle Rental', 'Water Station'] },
   ]
-
-  const courtNames = courtsData.map(c => c.courtName)
-  await db.delete(schema.court).where(inArray(schema.court.courtName, courtNames))
 
   const insertedCourts = await db
     .insert(schema.court)
@@ -109,7 +128,7 @@ async function seed() {
       courtsData.map(({ amenities: _, ...courtFields }) => ({
         ...courtFields,
         status: 'active',
-        ownerId: ownerProfile!.id,
+        ownerId: ownerProfile.id,
       })),
     )
     .onConflictDoNothing({ target: schema.court.courtName })
@@ -158,11 +177,10 @@ async function seed() {
     const statuses = ['confirmed', 'pending', 'cancelled', 'no_show']
     let bookingsCreated = 0
 
-    // Clear existing bookings for these courts to avoid duplicates on re-seed
     const courtIds = allCourts.map(c => c.id)
     await db.delete(schema.booking).where(inArray(schema.booking.courtId, courtIds))
 
-    for (let i = 0; i < 20; i++) {
+    for (let i = 0; i < 5; i++) {
       const court = allCourts[i % allCourts.length]
       const user = userProfiles[i % userProfiles.length]
       
@@ -202,25 +220,6 @@ async function seed() {
       bookingsCreated++
     }
     console.log(`    ✓ ${bookingsCreated} bookings & invoices created`)
-  }
-
-  // ── 7. Reviews ────────────────────────────────────────────────────────────
-  console.log('  → Inserting sample reviews...')
-  if (userProfiles.length > 0 && allCourts.length > 0) {
-    const reviewTexts = ['Great lighting!', 'Slippery floor.', 'Friendly staff.', 'Will definitely book again.']
-    let reviewsCreated = 0
-    for (let i = 0; i < 10; i++) {
-      const court = allCourts[i % allCourts.length]
-      const user = userProfiles[i % userProfiles.length]
-      await db.insert(schema.reviews).values({
-        userId: user.id,
-        courtId: court.id,
-        description: reviewTexts[i % reviewTexts.length],
-        title: 'Good Court',
-      }).onConflictDoNothing()
-      reviewsCreated++
-    }
-    console.log(`    ✓ ${reviewsCreated} reviews created`)
   }
 
   console.log('\n✅ Seed complete!')

@@ -2,82 +2,17 @@ import Link from 'next/link'
 import Navbar from '@/components/layout/Navbar'
 import FilterPills from '@/components/features/FilterPills'
 import { Search, MapPin, Search as SearchIcon, Star, Calendar, Trophy } from 'lucide-react'
+import { getAllCourts, type CourtListItem } from '@/lib/db/queries/courtQueries'
 
 
-// ─── Mock court data (will be replaced with DB fetch once courts are seeded) ──
-const COURTS = [
-  {
-    id: '1',
-    name: 'BGC Sports Hub — Court A',
-    location: 'Bonifacio Global City, Taguig',
-    type: 'Indoor',
-    price: 350,
-    rating: 4.9,
-    reviews: 128,
-    accent: '#4F46E5',   // indigo
-    accentBg: '#EEF2FF',
-    amenities: ['Paddle Rental', 'Locker Room', 'Pro Shop'],
-  },
-  {
-    id: '2',
-    name: 'Pickleball Manila — Court 3',
-    location: 'Ayala Ave, Makati City',
-    type: 'Outdoor',
-    price: 280,
-    rating: 4.7,
-    reviews: 94,
-    accent: '#059669',  // emerald
-    accentBg: '#ECFDF5',
-    amenities: ['Ball Rental', 'Water Station'],
-  },
-  {
-    id: '3',
-    name: 'The Paddle Club — VIP Court',
-    location: 'Eastwood City, Quezon City',
-    type: 'Indoor',
-    price: 420,
-    rating: 4.9,
-    reviews: 211,
-    accent: '#D97706',  // amber
-    accentBg: '#FFFBEB',
-    amenities: ['Paddle Rental', 'Café', 'Coaching', 'Scoreboard'],
-  },
-  {
-    id: '4',
-    name: 'Eastside Courts — Court 2',
-    location: 'Kapitolyo, Pasig City',
-    type: 'Outdoor',
-    price: 250,
-    rating: 4.6,
-    reviews: 67,
-    accent: '#DC2626',  // red
-    accentBg: '#FEF2F2',
-    amenities: ['Ball Rental', 'Parking'],
-  },
-  {
-    id: '5',
-    name: 'Smash & Rally Hub',
-    location: 'Mandaluyong City',
-    type: 'Indoor',
-    price: 380,
-    rating: 4.8,
-    reviews: 156,
-    accent: '#7C3AED',  // violet
-    accentBg: '#F5F3FF',
-    amenities: ['Paddle Rental', 'Locker Room', 'Coaching'],
-  },
-  {
-    id: '6',
-    name: 'Green Court Ortigas',
-    location: 'Ortigas Center, Pasig',
-    type: 'Outdoor',
-    price: 300,
-    rating: 4.7,
-    reviews: 89,
-    accent: '#0369A1',  // sky
-    accentBg: '#F0F9FF',
-    amenities: ['Scoreboard', 'Water Station'],
-  },
+// ─── Accent Colors (for generated court cards) ──────────────────────────────────
+const ACCENT_COLORS = [
+  { accent: '#4F46E5', accentBg: '#EEF2FF' }, // indigo
+  { accent: '#059669', accentBg: '#ECFDF5' }, // emerald
+  { accent: '#D97706', accentBg: '#FFFBEB' }, // amber
+  { accent: '#DC2626', accentBg: '#FEF2F2' }, // red
+  { accent: '#7C3AED', accentBg: '#F5F3FF' }, // violet
+  { accent: '#0369A1', accentBg: '#F0F9FF' }, // sky
 ]
 
 const STEPS = [
@@ -118,7 +53,9 @@ function CourtTypeBadge({ type }: { type: string }) {
 }
 
 // ─── Court card ───────────────────────────────────────────────────────────────
-function CourtCard({ court }: { court: (typeof COURTS)[number] }) {
+type CourtCardProps = CourtListItem & { accent: string; accentBg: string }
+
+function CourtCard({ court }: { court: CourtCardProps }) {
   return (
     <article className="card group overflow-hidden hover:-translate-y-1 transition-transform duration-200">
       {/* Image placeholder — geometric accent panel */}
@@ -150,29 +87,29 @@ function CourtCard({ court }: { court: (typeof COURTS)[number] }) {
         {/* Price chip — top left */}
         <div className="absolute top-3 left-3 bg-white rounded-lg px-3 py-1.5 shadow-float">
           <span className="text-sm font-extrabold text-asphalt">
-            ₱{court.price}
+            ₱{court.pricePerHour}
             <span className="text-xs font-medium text-on-surface-variant">/hr</span>
           </span>
         </div>
 
         {/* Type badge — bottom left */}
-        <CourtTypeBadge type={court.type} />
+        <CourtTypeBadge type={court.courtType === 'indoor' ? 'Indoor' : 'Outdoor'} />
       </div>
 
       {/* Card body */}
       <div className="p-4">
         <h3 className="font-bold text-asphalt text-base leading-tight line-clamp-1">
-          {court.name}
+          {court.courtName}
         </h3>
         <p className="text-sm text-on-surface-variant mt-0.5 flex items-center gap-1">
           <MapPin size={12} aria-hidden="true" />
-          {court.location}
+          {court.location || 'Unknown Location'}
         </p>
 
         {/* Rating */}
         <div className="flex items-center gap-1 mt-2">
-          <span className="text-sm font-bold text-asphalt">★ {court.rating}</span>
-          <span className="text-xs text-on-surface-variant">({court.reviews} reviews)</span>
+          <span className="text-sm font-bold text-asphalt">★ {court.avgRating || 'New'}</span>
+          <span className="text-xs text-on-surface-variant">({court.reviewCount} reviews)</span>
         </div>
 
         {/* Amenity chips */}
@@ -206,7 +143,13 @@ function CourtCard({ court }: { court: (typeof COURTS)[number] }) {
 }
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
-export default function HomePage() {
+export default async function HomePage() {
+  const courtsData = await getAllCourts()
+  const displayCourts = courtsData.map((c, i) => {
+    const colors = ACCENT_COLORS[i % ACCENT_COLORS.length]
+    return { ...c, ...colors }
+  })
+
   return (
     <>
       <Navbar />
@@ -448,9 +391,13 @@ export default function HomePage() {
 
             {/* Court grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {COURTS.map((court) => (
-                <CourtCard key={court.id} court={court} />
-              ))}
+              {displayCourts.length > 0 ? (
+                displayCourts.map((court) => (
+                  <CourtCard key={court.id} court={court} />
+                ))
+              ) : (
+                <p className="text-on-surface-variant col-span-full">No courts found.</p>
+              )}
             </div>
           </div>
         </section>

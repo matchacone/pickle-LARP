@@ -11,7 +11,7 @@ export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
   const [isPending, startTransition] = useTransition()
-  const { user, loading: authLoading } = useAuth()
+  const { user, role, loading: authLoading } = useAuth()
 
   useEffect(() => {
     const handler = () => setScrolled(window.scrollY > 16)
@@ -119,15 +119,17 @@ export default function Navbar() {
 
                   {/* Menu items */}
                   <div className="py-1">
-                    <Link
-                      href="/dashboard"
-                      onClick={() => setUserMenuOpen(false)}
-                      className="flex items-center gap-3 px-4 py-2.5 text-sm font-semibold text-on-surface hover:bg-mist transition-colors"
-                      role="menuitem"
-                    >
-                      <LayoutDashboard size={16} className="text-on-surface-variant" />
-                      Dashboard
-                    </Link>
+                    {(role === 'admin' || role === 'owner') && (
+                      <Link
+                        href="/dashboard"
+                        onClick={() => setUserMenuOpen(false)}
+                        className="flex items-center gap-3 px-4 py-2.5 text-sm font-semibold text-on-surface hover:bg-mist transition-colors"
+                        role="menuitem"
+                      >
+                        <LayoutDashboard size={16} className="text-on-surface-variant" />
+                        Dashboard
+                      </Link>
+                    )}
                     <Link
                       href="/my-bookings"
                       onClick={() => setUserMenuOpen(false)}
@@ -207,13 +209,15 @@ export default function Navbar() {
                 </span>
                 <span className="text-sm font-semibold text-asphalt truncate">{userEmail}</span>
               </div>
-              <Link
-                href="/dashboard"
-                onClick={() => setMenuOpen(false)}
-                className="btn btn-outline flex-1 justify-center text-sm"
-              >
-                Dashboard
-              </Link>
+              {(role === 'admin' || role === 'owner') && (
+                <Link
+                  href="/dashboard"
+                  onClick={() => setMenuOpen(false)}
+                  className="btn btn-outline flex-1 justify-center text-sm"
+                >
+                  Dashboard
+                </Link>
+              )}
               <button
                 onClick={() => { handleLogout(); setMenuOpen(false) }}
                 disabled={isPending}

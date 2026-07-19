@@ -16,23 +16,49 @@ import type { User } from '@supabase/supabase-js'
  */
 export function useAuth() {
   const [user, setUser] = useState<User | null>(null)
+  const [role, setRole] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     const supabase = createBrowserClient()
 
+    const fetchRole = async (currentUser: User | null) => {
+      if (!currentUser) {
+        setRole(null)
+        return
+      }
+      const { data } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', currentUser.id)
+        .single()
+      
+      setRole(data?.role ?? null)
+    }
+
     // Initial check
     supabase.auth.getUser().then(({ data: { user: currentUser } }) => {
       setUser(currentUser)
-      setLoading(false)
+      if (currentUser) {
+        fetchRole(currentUser).finally(() => setLoading(false))
+      } else {
+        setLoading(false)
+      }
     })
 
     // Listen for auth state changes (login, logout, token refresh)
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null)
-      setLoading(false)
+      const currentUser = session?.user ?? null
+      setUser(currentUser)
+      if (currentUser) {
+        setLoading(true)
+        fetchRole(currentUser).finally(() => setLoading(false))
+      } else {
+        setRole(null)
+        setLoading(false)
+      }
     })
 
     return () => {
@@ -40,5 +66,5 @@ export function useAuth() {
     }
   }, [])
 
-  return { user, loading }
+  return { user, role, loading }
 }

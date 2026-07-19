@@ -7,7 +7,7 @@
 
 import { db } from '@/lib/db'
 import { booking, invoice, court, profiles } from '@/lib/db/schema'
-import { eq, and, or, sql, desc, gte, lte, ne } from 'drizzle-orm'
+import { eq, and, or, sql, desc, gte, lte, ne, lt, gt } from 'drizzle-orm'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -263,8 +263,8 @@ export async function createBookingWithInvoice(
           eq(booking.courtId, input.courtId),
           or(eq(booking.status, 'confirmed'), eq(booking.status, 'pending')),
           // Overlap condition: existing.start < new.end AND existing.end > new.start
-          sql`${booking.startAt} < ${input.endAt}`,
-          sql`${booking.endAt} > ${input.startAt}`,
+          lt(booking.startAt, input.endAt),
+          gt(booking.endAt, input.startAt),
         ),
       )
       .limit(1)
