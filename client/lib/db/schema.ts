@@ -165,3 +165,29 @@ export const reviews = pgTable('reviews', {
 }, (table) => [
   uniqueIndex('reviews_user_court_unique').on(table.userId, table.courtId),
 ])
+
+// ---------------------------------------------------------------------------
+// owner_application
+// Stores onboarding applications for users wanting to become facility owners.
+// ---------------------------------------------------------------------------
+export const ownerApplication = pgTable('owner_application', {
+  id: uuid('id').primaryKey().default(sql`gen_random_uuid()`),
+  userId: uuid('user_id')
+    .notNull()
+    .references(() => profiles.id, { onDelete: 'cascade' }),
+  businessName: text('business_name').notNull(),
+  contactNumber: text('contact_number').notNull(),
+  location: text('location').notNull(),
+  permitUrl: text('permit_url').notNull(),
+  idUrl: text('id_url').notNull(),
+  courtPicUrl: text('court_pic_url').notNull(),
+  lobbyPicUrl: text('lobby_pic_url').notNull(),
+  status: text('status').notNull().default('pending'),
+  createdAt: tstz('created_at').notNull().defaultNow(),
+  updatedAt: tstz('updated_at').notNull().defaultNow(),
+}, (table) => [
+  check(
+    'owner_application_status_check',
+    sql`${table.status} IN ('pending', 'approved', 'rejected')`,
+  ),
+])

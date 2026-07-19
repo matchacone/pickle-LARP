@@ -43,6 +43,13 @@
       "when": 1783696696647,
       "tag": "0005_natural_shriek",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1784503057834,
+      "tag": "0006_far_king_cobra",
+      "breakpoints": true
     }
   ]
 }
