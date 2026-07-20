@@ -6,7 +6,7 @@ import { getUserBookings, type BookingListItem } from '@/lib/db/queries/bookingQ
 import CustomerBookingsList from './CustomerBookingsList'
 
 export const metadata: Metadata = {
-  title: 'My Bookings — PickleAll',
+  title: 'My Bookings — Pick-All',
   description: 'View and manage your court bookings.',
 }
 

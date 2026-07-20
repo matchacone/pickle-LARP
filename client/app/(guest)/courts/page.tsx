@@ -8,7 +8,7 @@ import { HeroSearch } from '@/components/features/HeroSearch'
 
 // ─── SEO ──────────────────────────────────────────────────────────────────────
 export const metadata: Metadata = {
-  title: 'Browse Courts — PickleAll',
+  title: 'Browse Courts — Pick-All',
   description:
     'Discover and book pickleball courts across the Philippines. Filter by location, indoor/outdoor, price, and more.',
 }
@@ -176,7 +176,7 @@ export default async function CourtsPage() {
         <footer className="bg-asphalt">
           <div className="container-page py-8 flex flex-col sm:flex-row items-center justify-between gap-4">
             <span className="text-sm font-bold text-white/60">
-              © {new Date().getFullYear()} PickleAll. All rights reserved.
+              © {new Date().getFullYear()} Pick-All. All rights reserved.
             </span>
             <div className="flex gap-6">
               {['Privacy', 'Terms', 'Contact'].map((l) => (

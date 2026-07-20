@@ -697,7 +697,7 @@ function CheckoutContent() {
       <footer className="border-t border-outline mt-16">
         <div className="container-page py-6 flex flex-col sm:flex-row items-center justify-between gap-4">
           <span className="text-xs font-semibold text-on-surface-variant">
-            © {new Date().getFullYear()} PickleAll. All rights reserved.
+            © {new Date().getFullYear()} Pick-All. All rights reserved.
           </span>
           <div className="flex gap-6">
             {['Privacy', 'Terms', 'Contact'].map((l) => (

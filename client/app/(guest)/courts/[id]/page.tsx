@@ -98,7 +98,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   }
 
   return {
-    title: `${court.courtName} — PickleAll`,
+    title: `${court.courtName} — Pick-All`,
     description: court.description,
   }
 }
@@ -321,7 +321,7 @@ export default async function CourtDetailPage({ params }: { params: Promise<{ id
         <footer className="bg-asphalt">
           <div className="container-page py-8 flex flex-col sm:flex-row items-center justify-between gap-4">
             <span className="text-sm font-bold text-white/60">
-              © {new Date().getFullYear()} PickleAll. All rights reserved.
+              © {new Date().getFullYear()} Pick-All. All rights reserved.
             </span>
             <div className="flex gap-6">
               {['Privacy', 'Terms', 'Contact'].map((l) => (

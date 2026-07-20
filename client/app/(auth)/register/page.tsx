@@ -40,7 +40,7 @@ function BrandPanel() {
             <line x1="2" y1="9" x2="16" y2="9" stroke="#121212" strokeWidth="1"/>
           </svg>
         </span>
-        <span className="text-white font-extrabold text-xl tracking-tight">PickleAll</span>
+        <span className="text-white font-extrabold text-xl tracking-tight">Pick-All</span>
       </Link>
 
       <div className="relative z-10">
@@ -163,7 +163,7 @@ export default function RegisterPage() {
               <line x1="9" y1="2" x2="9" y2="16" stroke="#D1FE00" strokeWidth="1.5"/>
             </svg>
           </span>
-          <span className="font-extrabold text-asphalt text-lg">PickleAll</span>
+          <span className="font-extrabold text-asphalt text-lg">Pick-All</span>
         </div>
 
         <div className="w-full max-w-sm animate-fade-up">

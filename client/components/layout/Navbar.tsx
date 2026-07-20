@@ -65,7 +65,7 @@ export default function Navbar() {
             </svg>
           </span>
           <span className="text-lg font-extrabold tracking-tight text-asphalt">
-            Pickle<span className="text-primary">All</span>
+            Pick-<span className="text-primary">All</span>
           </span>
         </Link>
 

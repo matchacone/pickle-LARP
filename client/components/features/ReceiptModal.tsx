@@ -63,7 +63,7 @@ export function ReceiptModal({
           <div className="bg-white w-full p-6 sm:p-8 shadow-float rounded-lg relative border-t-8 border-t-primary print:shadow-none print:border-none print:rounded-none">
             {/* Header */}
             <div className="text-center mb-8">
-              <h1 className="text-2xl font-extrabold text-asphalt tracking-tight uppercase">PickleAll</h1>
+              <h1 className="text-2xl font-extrabold text-asphalt tracking-tight uppercase">Pick-All</h1>
               <p className="text-sm text-on-surface-variant font-medium mt-1">Official Booking Receipt</p>
               <p className="text-xs text-on-surface-variant mt-0.5">Booking #{booking.id.split('-')[0].toUpperCase()}</p>
             </div>

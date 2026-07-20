@@ -88,7 +88,7 @@ export default function ApplyOwnerPage() {
     <div className="min-h-screen bg-surface-low py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-3xl mx-auto space-y-8">
         <div className="text-center">
-          <h1 className="text-4xl font-black text-asphalt tracking-tight">Partner with PickleAll</h1>
+          <h1 className="text-4xl font-black text-asphalt tracking-tight">Partner with Pick-All</h1>
           <p className="mt-4 text-lg text-on-surface-variant max-w-2xl mx-auto">
             List your courts on our platform and reach thousands of players. Submit your facility details and verification documents to get started.
           </p>

@@ -417,7 +417,7 @@ export default async function HomePage() {
                       <line x1="2" y1="9" x2="16" y2="9" stroke="#D1FE00" strokeWidth="1"/>
                     </svg>
                   </span>
-                  <span className="font-extrabold text-asphalt">PickleAll</span>
+                  <span className="font-extrabold text-asphalt">Pick-All</span>
                 </div>
                 <p className="text-sm text-on-surface-variant leading-relaxed">
                   The Philippines&apos; premier pickleball court booking platform.

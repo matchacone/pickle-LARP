@@ -22,6 +22,7 @@ export type CourtListItem = {
   status: string
   ownerId: string | null
   amenities: string[]
+  images: string[]
   reviewCount: number
   // Note: rating is not in the schema — we compute from reviews
   // Since there's no `rating` column, we default to 0 when no reviews exist
